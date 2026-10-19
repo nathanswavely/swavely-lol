@@ -42,7 +42,7 @@ origin.
 
 ## Deploying
 
-1. `wrangler d1 create swavely-lol`, and put the id in `wrangler.jsonc`.
+1. The D1 database `swavely-lol` exists (2026-10-19); its id is in `wrangler.jsonc`.
 2. `wrangler secret put ADMIN_EMAILS` and `wrangler secret put RESEND_API_KEY`.
 3. The Resend domain `send.swavely.lol` verified, its DNS records in Cloudflare.
 4. A proxied DNS record for the apex (an `AAAA` to `100::`) so the route matches.

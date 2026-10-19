@@ -14,6 +14,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "swavely-lol",
+  // The main Cloudflare account, which holds the swavely.lol zone.
+  "account_id": "98521ca2e365abe021315e836c0a31ed",
   "main": "./src/worker.ts",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
@@ -31,14 +33,13 @@
     "MAIL_FROM": "swavely.lol <hello@send.swavely.lol>"
   },
 
-  // People, managers, sign-in codes and sessions (migrations/). Create it with
-  // `wrangler d1 create swavely-lol` and put its id here; locally the Vite plugin
-  // provides one under .wrangler/state.
+  // People, managers, sign-in codes and sessions (migrations/). Created 2026-10-19 in
+  // the main account; locally the Vite plugin provides one under .wrangler/state.
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "swavely-lol",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "deda0f9e-4a1b-48f1-89f9-be1c363c8105",
       "migrations_dir": "migrations"
     }
   ]
