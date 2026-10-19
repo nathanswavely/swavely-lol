@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+
+/**
+ * What swavely.lol keeps and why, in plain words. Keep it true: when a Tool starts
+ * keeping something new, or a new service touches the data, this page changes with it.
+ */
+---
+
+<Base title="Privacy">
+  <article class="prose-page">
+    <h1 class="page">Privacy</h1>
+    <p>swavely.lol is a personal site, and most of it does not know who you are. If you just look at the tools and projects, nothing about you is stored here, and there are no analytics, no ads, and no tracking. The light or dark choice is saved in your own browser and never leaves it.</p>
+
+    <h2>What changes when you sign in</h2>
+    <p>Some tools, like the gift exchange, are invite-only. Somebody (me, or whoever runs your group) added you with your name and usually your email address, so you did not sign up for this yourself, which is part of why this page exists. If you were added without an email, the people who look after you sign in instead.</p>
+    <p>When you sign in, you get an email with a six-digit code. The code is stored scrambled (hashed) for ten minutes and then thrown away. Signing in sets one cookie, which keeps you signed in for thirty days, and that is the only cookie on the site.</p>
+
+    <h2>What the gift exchange keeps</h2>
+    <p>Your groups, who takes part each year, the rules your organizer sets (who never draws whom), the names that get drawn, and your wish list, along with who said they are getting what. Nobody can see who drew whom in the app, including me. The database itself still has the pairings, and I can read it by hand if something breaks.</p>
+
+    <h2>Who else touches it</h2>
+    <p>Cloudflare hosts the site and the database, and keeps short-lived request logs that can include your IP address. Resend sends the emails, so it sees your address and what the email says. Nobody else gets anything, and nothing is sold.</p>
+    <p>The projects on the shelf (Showliner, Lancaster Patchwork, quilt.host, Jump Back In) live on their own sites and have their own policies.</p>
+
+    <h2>Getting yourself removed</h2>
+    <p>Email me at <a href="mailto:nathan@swavelycreative.com">nathan@swavelycreative.com</a> and I will take you off swavely.lol along with anything you added, like your wish list.</p>
+
+    <p class="lt-muted small">Last updated October 19, 2026.</p>
+  </article>
+</Base>
