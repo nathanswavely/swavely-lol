@@ -6,32 +6,25 @@ import { PROJECTS, TOOLS, isExternal, toolHref, type Tile } from '../lib/tools';
 /**
  * The Shelf (ADR-0002): Tools first, then Projects, as tiles, to anyone. Open ones go
  * straight in; Invite-only ones carry a lock and ask for sign-in only when opened.
- * Signed in, the same Shelf with a hello.
+ * Signed in or not, the same page.
  */
 const env = getEnv();
-const viewer = Astro.locals.viewer;
-const first = viewer?.name.split(' ')[0];
 const host = (href: string) => new URL(href).hostname;
-const shelves: { id: string; title: string; intro: string; tiles: Tile[] }[] = [
-  { id: 'tools', title: 'Tools', intro: 'Small apps that each do one job, some for anyone and some just for us.', tiles: TOOLS },
-  { id: 'projects', title: 'Projects', intro: 'Bigger things that have outgrown this page. Each one has its own site, so these tiles link out.', tiles: PROJECTS },
+const shelves: { id: string; title: string; tiles: Tile[] }[] = [
+  { id: 'tools', title: 'Tools', tiles: TOOLS },
+  { id: 'projects', title: 'Projects', tiles: PROJECTS },
 ];
 ---
 
-<Base title="swavely.lol" indexed wide description="Tools and projects by Nathan Swavely, from a family gift exchange to Showliner and Patchwork. Some are open to anyone and some are invite-only.">
+<Base title="swavely.lol" indexed wide description="Tools and projects by Nathan Swavely.">
   <section class="hello">
-    <h1 class="page">{first ? `Hi ${first}` : 'swavely.lol'}</h1>
-    <p class="page-lead">
-      {first
-        ? 'You are signed in, so a locked tool will let you through if someone has added you to it.'
-        : "This is where I keep the things I build that aren't client work. Some are small tools I made for myself or my family, and some are bigger projects that have their own websites now. Anything with a lock is for family and friends, so you'll need an invite to get in."}
-    </p>
+    <h1 class="page">swavely.lol</h1>
+    <p class="page-lead">Tools and projects by Nathan Swavely. More about me at <a href="https://nathanswavely.com">nathanswavely.com</a>, and my work at <a href="https://swavelycreative.com">Swavely Creative</a>.</p>
   </section>
 
   {shelves.map((s) => (
     <section class="shelf-section" aria-labelledby={s.id}>
       <h2 class="shelf-title" id={s.id}>{s.title}</h2>
-      <p class="shelf-intro">{s.intro}</p>
       <ul class={`shelf shelf-${s.id}`}>
         {s.tiles.map((t) => (
           <li>

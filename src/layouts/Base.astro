@@ -3,7 +3,7 @@ import '../styles/global.css';
 
 /**
  * The Hub's shell: a bar with the mark and either who is signed in or a way to sign in,
- * the page, a footer. `bare` is the sign-in pages. `indexed` is the Shelf alone
+ * then the page. `bare` is the sign-in pages. `indexed` is the Shelf alone
  * (ADR-0002); every other page asks search engines to stay out. Textile finish, lol
  * skin; light or dark from the device, or the choice saved by the theme button (Liquid
  * Textile's `lt-theme` key).
@@ -71,7 +71,6 @@ const fullTitle = title === 'swavely.lol' ? title : `${title} · swavely.lol`;
       <main class={wide ? "wide" : undefined}>
         <slot />
       </main>
-      <footer class="foot">Built and run by <a href="https://nathanswavely.com">Nathan Swavely</a> in Lancaster, PA, and the client work lives over at <a href="https://swavelycreative.com">Swavely Creative</a>.</footer>
     </div>
     <script is:inline>
       (function () {

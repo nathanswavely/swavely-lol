@@ -63,8 +63,7 @@ h1.page { margin: 0 0 0.25rem; font-family: var(--lt-font-display); font-size: 1
    washed into the surface, so the shelf reads as a quilt in light and dark alike. */
 .hello { margin-bottom: var(--lt-stack); }
 .shelf-section + .shelf-section { margin-top: calc(var(--lt-stack) * 1.5); }
-.shelf-title { margin: 0; font-family: var(--lt-font-display); font-size: 1.3rem; }
-.shelf-intro { margin: 0.2rem 0 0.9rem; color: var(--lt-color-text-muted); }
+.shelf-title { margin: 0 0 0.75rem; font-family: var(--lt-font-display); font-size: 1.3rem; }
 .shelf {
   list-style: none;
   margin: 0;

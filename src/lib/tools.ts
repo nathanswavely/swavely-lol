@@ -6,7 +6,7 @@
  */
 export interface Tile {
   name: string;
-  /** One or two sentences under the name. */
+  /** One short line under the name. */
   blurb: string;
   /** A path on swavely.lol ('/gifts') for a Tool that lives here, or a full URL. */
   href: string;
@@ -25,7 +25,7 @@ export interface Tile {
 export const TOOLS: Tile[] = [
   {
     name: 'Gift exchange',
-    blurb: "Our family's replacement for Drawnames. It draws names, keeps everyone's wish lists, and doesn't let anyone see who drew who, including me.",
+    blurb: 'Draws names for our family gift exchange and keeps wish lists.',
     href: '/gifts',
     access: 'invite',
     colour: 'cranberry',
@@ -34,7 +34,7 @@ export const TOOLS: Tile[] = [
   },
   {
     name: 'Jump Back In',
-    blurb: "Stopped a show years ago and can't remember where? Find the episode to pick up from, without spoilers.",
+    blurb: 'Finds the episode to pick a show back up from, without spoilers.',
     href: 'https://jumpbackin.show',
     access: 'open',
     colour: 'pine',
