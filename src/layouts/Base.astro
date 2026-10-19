@@ -41,7 +41,10 @@ const fullTitle = title === 'swavely.lol' ? title : `${title} · swavely.lol`;
         <meta property="og:type" content="website" />
       </>
     )}
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
     <title>{fullTitle}</title>
     <script is:inline>
       (function () {
@@ -55,7 +58,7 @@ const fullTitle = title === 'swavely.lol' ? title : `${title} · swavely.lol`;
   <body>
     <div class="shell">
       {!home && !bare && (
-        <a class="home-link" href="/"><img src="/favicon.svg" alt="" width="22" height="22" />swavely.lol</a>
+        <a class="home-link" href="/"><img src="/favicon/android-chrome-192x192.png" alt="" width="22" height="22" />swavely.lol</a>
       )}
       <div class="settings">
         <button type="button" class="lt-btn lt-btn-ghost lt-btn-icon" id="settings-btn" aria-label="Settings">
