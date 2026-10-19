@@ -2,11 +2,12 @@
 import '../styles/global.css';
 
 /**
- * The Hub's shell: a bar with the mark and either who is signed in or a way to sign in,
- * then the page. `bare` is the sign-in pages. `indexed` is the Shelf alone
- * (ADR-0002); every other page asks search engines to stay out. Textile finish, lol
- * skin; light or dark from the device, or the choice saved by the theme button (Liquid
- * Textile's `lt-theme` key).
+ * The Hub's shell. No bar: a settings cog sits in the top right on every page, and its
+ * menu holds who is signed in, the theme, People for a Hub Admin, and sign in or out.
+ * Pages other than the Shelf get a small way home in the top left. `bare` is the
+ * sign-in pages. `indexed` is the Shelf alone (ADR-0002); every other page asks search
+ * engines to stay out. Textile finish, lol skin; light or dark from the device, or the
+ * choice saved in the menu (Liquid Textile's `lt-theme` key).
  */
 interface Props {
   title: string;
@@ -14,10 +15,12 @@ interface Props {
   indexed?: boolean;
   /** A wider page, for the Shelf. */
   wide?: boolean;
+  /** The Shelf: no way home, since it is home. */
+  home?: boolean;
   description?: string;
 }
-const { title, bare = false, indexed = false, wide = false, description } = Astro.props;
-const viewer = bare ? undefined : Astro.locals.viewer;
+const { title, bare = false, indexed = false, wide = false, home = false, description } = Astro.props;
+const viewer = Astro.locals.viewer;
 const fullTitle = title === 'swavely.lol' ? title : `${title} · swavely.lol`;
 ---
 
@@ -51,38 +54,53 @@ const fullTitle = title === 'swavely.lol' ? title : `${title} · swavely.lol`;
   </head>
   <body>
     <div class="shell">
-      {!bare && (
-        <header class="bar">
-          <a class="brand" href="/"><img src="/favicon.svg" alt="" width="26" height="26" />swavely.lol</a>
-          <div class="who">
-            {viewer && <span class="name">{viewer.name}</span>}
-            {viewer?.isHubAdmin && <a class="lt-btn lt-btn-ghost lt-btn-sm" href="/people">People</a>}
-            <button type="button" class="lt-btn lt-btn-ghost lt-btn-sm" id="theme" aria-label="Switch light or dark">◐</button>
-            {viewer ? (
-              <form method="post" action="/logout">
-                <button class="lt-btn lt-btn-ghost lt-btn-sm" type="submit">Sign out</button>
-              </form>
-            ) : (
-              <a class="lt-btn lt-btn-ghost lt-btn-sm" href="/login">Sign in</a>
-            )}
-          </div>
-        </header>
+      {!home && !bare && (
+        <a class="home-link" href="/"><img src="/favicon.svg" alt="" width="22" height="22" />swavely.lol</a>
       )}
-      <main class={wide ? "wide" : undefined}>
+      <div class="settings">
+        <button type="button" class="lt-btn lt-btn-ghost lt-btn-icon" id="settings-btn" aria-label="Settings">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
+        </button>
+        <div class="lt-popover lt-menu" id="settings-menu">
+          {viewer && <div class="lt-menu-label">Signed in as {viewer.name}</div>}
+          <button type="button" class="lt-menu-item" data-action="theme">Dark mode</button>
+          {viewer?.isHubAdmin && <a class="lt-menu-item" href="/people">People</a>}
+          {!home && <a class="lt-menu-item" href="/">Back to the shelf</a>}
+          {(viewer || !bare) && <hr class="lt-menu-divider" />}
+          {viewer
+            ? <button type="button" class="lt-menu-item" data-action="signout">Sign out</button>
+            : !bare && <a class="lt-menu-item" href="/login">Sign in</a>}
+        </div>
+        <form method="post" action="/logout" id="signout-form" hidden></form>
+      </div>
+      <main class={wide ? 'wide' : undefined}>
         <slot />
       </main>
     </div>
-    <script is:inline>
-      (function () {
-        var b = document.getElementById('theme');
-        if (!b) return;
-        b.addEventListener('click', function () {
-          var root = document.documentElement;
-          var t = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-          root.setAttribute('data-theme', t);
-          try { localStorage.setItem('lt-theme', t); } catch (e) {}
-        });
-      })();
+    <script>
+      import { menu } from '../styles/liquid-textile/behaviors.js';
+
+      const root = document.documentElement;
+      const themeItem = document.querySelector<HTMLButtonElement>('[data-action="theme"]')!;
+      const label = () => { themeItem.textContent = root.getAttribute('data-theme') === 'dark' ? 'Light mode' : 'Dark mode'; };
+      label();
+
+      menu(document.getElementById('settings-btn'), document.getElementById('settings-menu'), {
+        align: 'end',
+        onSelect: (picked?: unknown) => {
+          const item = picked as HTMLElement;
+          if (item.dataset.action === 'theme') {
+            const t = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            root.setAttribute('data-theme', t);
+            try { localStorage.setItem('lt-theme', t); } catch {}
+            label();
+          } else if (item.dataset.action === 'signout') {
+            (document.getElementById('signout-form') as HTMLFormElement).submit();
+          } else if (item instanceof HTMLAnchorElement) {
+            location.href = item.href;
+          }
+        },
+      });
     </script>
   </body>
 </html>
