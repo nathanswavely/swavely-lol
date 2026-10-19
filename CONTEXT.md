@@ -12,16 +12,22 @@ them in when a Tool asks it to. Owns no tool's data.
 _Avoid_: Portal (that is Swavely Creative's client site), dashboard, home
 
 **Shelf**:
-The front page of `swavely.lol`: every **Tool**, as a tile, to anyone who visits, signed in
-or not. The one page meant to be found by search.
+The front page of `swavely.lol`: every **Tool**, then every **Project**, as tiles, to anyone
+who visits, signed in or not. The one page meant to be found by search.
 _Avoid_: Homepage, launcher, app selector, directory
 
 **Tool**:
-One thing of Nathan's on the **Shelf**, **Open** or **Invite-only**. Most live at a path
-under `swavely.lol`, each in its own repo and Worker; some live on their own domain
-(Jump Back In at `jumpbackin.show`) and their tile leads there. The family gift
-exchange is the first that lives here.
-_Avoid_: App (client-ops uses App for the whole of `swavely.lol`), project, module, plugin
+A small app of Nathan's that does one job, on the **Shelf**, **Open** or **Invite-only**.
+Most live at a path under `swavely.lol`, each in its own repo and Worker; some live on
+their own domain (Jump Back In at `jumpbackin.show`) and their tile leads there. The
+family gift exchange is the first that lives here.
+_Avoid_: App (client-ops uses App for the whole of `swavely.lol`), module, plugin
+
+**Project**:
+Something bigger than a **Tool**, with its own domain and users beyond family and
+friends: Showliner, Lancaster Patchwork, quilt.host. Its tile always links out; the Hub
+holds nothing of it.
+_Avoid_: Product, app, client work (that is Swavely Creative's)
 
 **Open**:
 A **Tool** anyone can use without signing in. Indexed like the Shelf.

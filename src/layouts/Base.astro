@@ -12,9 +12,11 @@ interface Props {
   title: string;
   bare?: boolean;
   indexed?: boolean;
+  /** A wider page, for the Shelf. */
+  wide?: boolean;
   description?: string;
 }
-const { title, bare = false, indexed = false, description } = Astro.props;
+const { title, bare = false, indexed = false, wide = false, description } = Astro.props;
 const viewer = bare ? undefined : Astro.locals.viewer;
 const fullTitle = title === 'swavely.lol' ? title : `${title} · swavely.lol`;
 ---
@@ -66,10 +68,10 @@ const fullTitle = title === 'swavely.lol' ? title : `${title} · swavely.lol`;
           </div>
         </header>
       )}
-      <main>
+      <main class={wide ? "wide" : undefined}>
         <slot />
       </main>
-      <footer class="foot">swavely.lol · small things by <a href="https://nathanswavely.com">Nathan Swavely</a></footer>
+      <footer class="foot">Built and run by <a href="https://nathanswavely.com">Nathan Swavely</a> in Lancaster, PA, and the client work lives over at <a href="https://swavelycreative.com">Swavely Creative</a>.</footer>
     </div>
     <script is:inline>
       (function () {

@@ -22,6 +22,9 @@ not. Sign-in happens only when someone opens an **Invite-only** Tool.
   indexed. Sign-in, the People page and every Invite-only Tool send `noindex` and are
   disallowed in `robots.txt`. Sandboxes at `<name>.swavely.lol` stay noindex
   (client-ops ADR-0007).
+- **Two shelves, Tools first.** Small single-job **Tools** come first, then **Projects**,
+  the bigger things with their own domains and users (added the same day, when Showliner,
+  Patchwork and quilt.host joined and "small tools" stopped describing the page).
 - **The Shelf is a list in code**, `src/lib/tools.ts`: name, line, where it lives, access,
   and the tile's colour. It changes a few times a year; a CMS would be heavier than the
   list.

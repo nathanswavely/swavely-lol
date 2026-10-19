@@ -1,46 +1,56 @@
 ---
 import Base from '../layouts/Base.astro';
 import { getEnv } from '../lib/env';
-import { TOOLS, isExternal, toolHref } from '../lib/tools';
+import { PROJECTS, TOOLS, isExternal, toolHref, type Tile } from '../lib/tools';
 
 /**
- * The Shelf (ADR-0002): every Tool as a tile, to anyone. Open Tools go straight in;
- * Invite-only ones carry a lock and ask for sign-in only when opened. Signed in, the
- * same Shelf with a hello.
+ * The Shelf (ADR-0002): Tools first, then Projects, as tiles, to anyone. Open ones go
+ * straight in; Invite-only ones carry a lock and ask for sign-in only when opened.
+ * Signed in, the same Shelf with a hello.
  */
 const env = getEnv();
 const viewer = Astro.locals.viewer;
 const first = viewer?.name.split(' ')[0];
 const host = (href: string) => new URL(href).hostname;
+const shelves: { id: string; title: string; intro: string; tiles: Tile[] }[] = [
+  { id: 'tools', title: 'Tools', intro: 'Small apps that each do one job, some for anyone and some just for us.', tiles: TOOLS },
+  { id: 'projects', title: 'Projects', intro: 'Bigger things that have outgrown this page. Each one has its own site, so these tiles link out.', tiles: PROJECTS },
+];
 ---
 
-<Base title="swavely.lol" indexed description="Small tools by Nathan Swavely: some for anyone, some just for family and friends.">
+<Base title="swavely.lol" indexed wide description="Tools and projects by Nathan Swavely, from a family gift exchange to Showliner and Patchwork. Some are open to anyone and some are invite-only.">
   <section class="hello">
-    <h1 class="page">{first ? `Hi, ${first}.` : 'Small tools, mostly for fun.'}</h1>
+    <h1 class="page">{first ? `Hi ${first}` : 'swavely.lol'}</h1>
     <p class="page-lead">
       {first
-        ? 'Everything on the shelf. The ones with a lock are yours to open.'
-        : 'Things I made. Some are for anyone; the ones with a lock are for family and friends.'}
+        ? 'You are signed in, so a locked tool will let you through if someone has added you to it.'
+        : "This is where I keep the things I build that aren't client work. Some are small tools I made for myself or my family, and some are bigger projects that have their own websites now. Anything with a lock is for family and friends, so you'll need an invite to get in."}
     </p>
   </section>
 
-  <ul class="shelf">
-    {TOOLS.map((t) => (
-      <li>
-        <a class={`tile lt-card tile-${t.colour}`} href={toolHref(env, t.href)} {...(isExternal(t) ? { rel: 'noopener' } : {})}>
-          <span class="tile-mark" aria-hidden="true">{t.mark}</span>
-          <span class="tile-name">{t.name}</span>
-          <span class="tile-blurb">{t.blurb}</span>
-          <span class="tile-foot">
-            {t.soon
-              ? <span class="lt-tag lt-tone-warning">Not open yet</span>
-              : t.access === 'invite'
-                ? <span class="lt-tag lt-tone-muted">🔒 Invite-only</span>
-                : <span class="lt-tag lt-tone-success">Open to all</span>}
-            {isExternal(t) && <span class="tile-where">{host(t.href)} ↗</span>}
-          </span>
-        </a>
-      </li>
-    ))}
-  </ul>
+  {shelves.map((s) => (
+    <section class="shelf-section" aria-labelledby={s.id}>
+      <h2 class="shelf-title" id={s.id}>{s.title}</h2>
+      <p class="shelf-intro">{s.intro}</p>
+      <ul class={`shelf shelf-${s.id}`}>
+        {s.tiles.map((t) => (
+          <li>
+            <a class={`tile lt-card tile-${t.colour}`} href={toolHref(env, t.href)} {...(isExternal(t) ? { rel: 'noopener' } : {})}>
+              <span class="tile-mark" aria-hidden="true">{t.mark}</span>
+              <span class="tile-name">{t.name}</span>
+              <span class="tile-blurb">{t.blurb}</span>
+              <span class="tile-foot">
+                {t.soon
+                  ? <span class="lt-tag lt-tone-warning">Not open yet</span>
+                  : t.access === 'invite'
+                    ? <span class="lt-tag lt-tone-muted">🔒 Invite-only</span>
+                    : <span class="lt-tag lt-tone-success">Open to all</span>}
+                {isExternal(t) && <span class="tile-where">{host(t.href)} ↗</span>}
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
 </Base>

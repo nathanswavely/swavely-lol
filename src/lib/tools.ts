@@ -1,15 +1,16 @@
 /**
- * The Shelf: every Tool, in the order it is shown (ADR-0002). A Tool that lives here is
- * its own repo and Worker on a route under the apex (ADR-0001); one that lives elsewhere
- * keeps its own domain and its tile links out. Adding a Tool is a line here.
+ * The Shelf: Tools first, then Projects, each in the order shown (ADR-0002). A Tool that
+ * lives here is its own repo and Worker on a route under the apex (ADR-0001); anything
+ * that lives elsewhere keeps its own domain and its tile links out. Adding one is a line
+ * here.
  */
-export interface Tool {
+export interface Tile {
   name: string;
-  /** One line under the name. */
+  /** One or two sentences under the name. */
   blurb: string;
   /** A path on swavely.lol ('/gifts') for a Tool that lives here, or a full URL. */
   href: string;
-  /** Open: anyone. Invite-only: sign-in when opened, never indexed. */
+  /** Open: anyone. Invite-only: sign-in when opened, never indexed. Projects are open. */
   access: 'open' | 'invite';
   /** The tile's ink, from the lol skin. */
   colour: 'pine' | 'cranberry' | 'gold' | 'sage';
@@ -20,10 +21,11 @@ export interface Tool {
   soon?: boolean;
 }
 
-export const TOOLS: Tool[] = [
+/** Small apps that do one job each. */
+export const TOOLS: Tile[] = [
   {
     name: 'Gift exchange',
-    blurb: 'Draw names for the family, keep a wish list, and nobody peeks.',
+    blurb: "Our family's replacement for Drawnames. It draws names, keeps everyone's wish lists, and doesn't let anyone see who drew who, including me.",
     href: '/gifts',
     access: 'invite',
     colour: 'cranberry',
@@ -32,13 +34,17 @@ export const TOOLS: Tool[] = [
   },
   {
     name: 'Jump Back In',
-    blurb: "Stopped a show years ago? Find the episode to pick up from, without spoilers.",
+    blurb: "Stopped a show years ago and can't remember where? Find the episode to pick up from, without spoilers.",
     href: 'https://jumpbackin.show',
     access: 'open',
     colour: 'pine',
     mark: '📺',
     repo: 'https://github.com/nathanswavely/episode-finder',
   },
+];
+
+/** Bigger things with their own domains and users; always linked out. */
+export const PROJECTS: Tile[] = [
   {
     name: 'Showliner',
     blurb: 'Booking and show-night software for independent venues and artists.',
@@ -61,16 +67,16 @@ export const TOOLS: Tool[] = [
     blurb: 'Managed hosting for Patchwork instances.',
     href: 'https://quilt.host',
     access: 'open',
-    colour: 'cranberry',
+    colour: 'pine',
     mark: '🪡',
     soon: true,
   },
 ];
 
-export const isExternal = (t: Tool) => /^https?:\/\//.test(t.href);
+export const isExternal = (t: Tile) => /^https?:\/\//.test(t.href);
 
 /** The Tool that lives at this path on swavely.lol, if any. */
-export function toolAt(path: string): Tool | undefined {
+export function toolAt(path: string): Tile | undefined {
   return TOOLS.find((t) => !isExternal(t) && (path === t.href || path.startsWith(t.href + '/')));
 }
 
