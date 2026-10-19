@@ -19,7 +19,7 @@ interface HubEnv {
 
 declare namespace App {
   interface Locals {
-    /** The signed-in Person; set by src/middleware.ts, absent on the open paths. */
-    viewer: import('./lib/contract').Viewer & { sessionIdHash: string };
+    /** The signed-in Person, if any; set by src/middleware.ts. Only /people requires one. */
+    viewer?: import('./lib/contract').Viewer & { sessionIdHash: string };
   }
 }

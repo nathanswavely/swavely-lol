@@ -1,7 +1,7 @@
 # swavely.lol
 
-The hub for a handful of small tools for family and friends: one sign-in, one look,
-and a list of what's there. Each tool is its own repo and its own Cloudflare Worker on
+A shelf of small tools: some open to anyone, some just for family and friends, some
+living on their own domains. One look, and one sign-in for the ones that need it. Each tool is its own repo and its own Cloudflare Worker on
 a path under `swavely.lol`; the first is the [gift exchange](https://github.com/nathanswavely/gift-exchange).
 
 Start with [CONTEXT.md](CONTEXT.md) for the words, then
@@ -10,6 +10,10 @@ pieces fit.
 
 ## What it does
 
+- **Shows the Shelf.** `swavely.lol` opens on every Tool as a tile, to anyone
+  ([ADR-0002](docs/adr/0002-the-shelf-comes-first-sign-in-when-asked.md)). Open Tools go
+  straight in; Invite-only ones ask for sign-in when opened. The list is
+  [src/lib/tools.ts](src/lib/tools.ts).
 - **Signs people in by emailed code.** No passwords. Codes are hashed, expire in ten
   minutes and allow five guesses; sessions are random, hashed, HttpOnly and host-only.
 - **Knows the People.** A Person is a name and usually an email. Someone without one (a

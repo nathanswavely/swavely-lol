@@ -2,20 +2,20 @@ import { defineMiddleware } from 'astro:middleware';
 import { getEnv } from './lib/env';
 import { viewer } from './lib/people';
 import { SESSION_COOKIE, readCookie, readSession } from './lib/auth';
-import { TOOLS, toolHref } from './lib/tools';
+import { toolAt, toolHref } from './lib/tools';
 
 /**
- * Who is this, and may they be here. A session cookie names a row in D1, that row
- * names a Person. Open without one: /healthz, /login and its steps, built assets.
- * Everything else redirects to /login. /people is a Hub Admin's, and a 404 to anyone
- * else.
+ * Who is this, and do they need to be anyone (ADR-0002). The Shelf and sign-in are open
+ * to all; a session cookie, when present, names a Person so the Shelf can greet them.
+ * Only /people needs a Person: signed out it goes to /login, and to anyone but a Hub
+ * Admin it is a 404. Invite-only Tools guard themselves.
  *
  * Every POST must come from this origin (Sec-Fetch-Site, or Origin). The cookie is
  * SameSite=Lax, which already keeps a cross-site form from carrying it; this is the
- * second lock. Every response is noindex (client-ops ADR-0012).
+ * second lock. Only the Shelf is indexed; every other response is noindex.
  */
-const OPEN = ['/healthz', '/login', '/login/verify', '/login/resend'];
 const ADMIN_ONLY = ['/people'];
+const INDEXED = ['/'];
 
 export const onRequest = defineMiddleware(async (ctx, next) => {
   const { pathname } = ctx.url;
@@ -34,29 +34,23 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
     if (!sameOrigin) return new Response('Cross-origin request refused.', { status: 403 });
   }
 
-  const open = OPEN.includes(pathname) || pathname.startsWith('/_astro/') || pathname.startsWith('/fonts/') || pathname === '/favicon.svg' || pathname === '/robots.txt';
-
   const id = readCookie(ctx.request, SESSION_COOKIE);
   const session = id ? await readSession(env.DB, id) : null;
   const who = session ? await viewer(env, session.personId) : null;
   if (session && who) ctx.locals.viewer = { ...who, sessionIdHash: session.idHash };
 
-  if (!who && !open) {
-    const back = pathname === '/' ? '' : `?next=${encodeURIComponent(pathname + ctx.url.search)}`;
-    return ctx.redirect(`/login${back}`, 302);
-  }
+  const adminOnly = ADMIN_ONLY.some((p) => pathname === p || pathname.startsWith(p + '/'));
+  if (adminOnly && !who) return ctx.redirect(`/login?next=${encodeURIComponent(pathname + ctx.url.search)}`, 302);
+  if (adminOnly && !who?.isHubAdmin) return new Response('Not found.', { status: 404 });
+
   if (who && (pathname === '/login' || pathname === '/login/verify')) {
     const next = ctx.url.searchParams.get('next') ?? '';
     const safe = next.startsWith('/') && !next.startsWith('//') ? next : '/';
-    const tool = TOOLS.some((t) => safe === t.path || safe.startsWith(t.path + '/'));
-    return ctx.redirect(tool ? toolHref(env, safe) : safe, 302);
-  }
-  if (who && !who.isHubAdmin && ADMIN_ONLY.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
-    return new Response('Not found.', { status: 404 });
+    return ctx.redirect(toolAt(safe) ? toolHref(env, safe) : safe, 302);
   }
 
   const res = await next();
-  res.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  if (!INDEXED.includes(pathname) && !pathname.startsWith('/_astro/')) res.headers.set('X-Robots-Tag', 'noindex, nofollow');
   if (!pathname.startsWith('/_astro/')) res.headers.set('Cache-Control', 'private, no-store');
   res.headers.set('Referrer-Policy', 'same-origin');
   res.headers.set('X-Content-Type-Options', 'nosniff');

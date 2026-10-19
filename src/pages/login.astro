@@ -4,6 +4,7 @@ import { getEnv } from '../lib/env';
 import { issueCode, normaliseEmail } from '../lib/auth';
 import { sendSignInCode } from '../lib/mail';
 import { personForSignIn } from '../lib/people';
+import { toolAt } from '../lib/tools';
 
 /**
  * Step one of sign-in: an email address. Whatever is typed, the answer is the same
@@ -13,6 +14,8 @@ import { personForSignIn } from '../lib/people';
 const env = getEnv();
 const next = Astro.url.searchParams.get('next') ?? '';
 const prefill = normaliseEmail(Astro.url.searchParams.get('email') ?? '') ?? '';
+// Sent here by an Invite-only Tool: say which, and why a stranger will get no code.
+const asking = next.startsWith('/') ? toolAt(next) : undefined;
 let error: string | undefined;
 
 if (Astro.request.method === 'POST') {
@@ -45,7 +48,10 @@ if (Astro.request.method === 'POST') {
   <div class="sign-in">
     <div class="mark"><img src="/favicon.svg" alt="" width="36" height="36" />swavely.lol</div>
     <div class="lt-card">
-      <h2 style="margin-top:0">Sign in</h2>
+      <h2 style="margin-top:0">{asking ? `Sign in to ${asking.name}` : 'Sign in'}</h2>
+      {asking?.access === 'invite' && (
+        <p class="small" style="margin:0 0 0.5rem">{asking.name} is invite-only. If someone has added you, use the address they used.</p>
+      )}
       <p class="lt-muted small" style="margin:0 0 1rem">We'll email you a code. No password.</p>
       {error && <div class="lt-callout lt-tone-error" style="margin-bottom:1rem">{error}</div>}
       <form method="post" class="lt-form">
@@ -58,6 +64,6 @@ if (Astro.request.method === 'POST') {
         </div>
       </form>
     </div>
-    <p class="fine lt-muted" style="margin-top:1rem">Not getting a code? Whoever invited you can check the address they used.</p>
+    <p class="fine lt-muted" style="margin-top:1rem">Not getting a code? Whoever invited you can check the address they used. Or <a href="/">back to the shelf</a>.</p>
   </div>
 </Base>

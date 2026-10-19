@@ -10,7 +10,7 @@ import { addPerson, adminEmails, allPeople, setManagers } from '../lib/people';
  * from inside their Tool; this page is for everything else.
  */
 const env = getEnv();
-const viewer = Astro.locals.viewer;
+const viewer = Astro.locals.viewer!; // the middleware lets only a Hub Admin reach /people
 let notice: { tone: 'success' | 'error'; text: string } | undefined;
 
 if (Astro.request.method === 'POST') {

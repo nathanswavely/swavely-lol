@@ -57,11 +57,42 @@ h1.page { margin: 0 0 0.25rem; font-family: var(--lt-font-display); font-size: 1
 .fine { font-size: var(--lt-text-xs); }
 .row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.9rem; }
 
-/* The Tools, as cards. */
-.tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: var(--lt-gap); }
-.tool-card { display: block; color: inherit; text-decoration: none; }
-.tool-card h2 { margin: 0 0 0.3rem; font-family: var(--lt-font-display); font-size: 1.2rem; }
-.tool-card p { margin: 0; color: var(--lt-color-text-muted); }
+/* The Shelf (ADR-0002): every Tool as a patch. Each tile takes one ink from the skin,
+   washed into the surface, so the shelf reads as a quilt in light and dark alike. */
+.hello { margin-bottom: var(--lt-stack); }
+.shelf {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--lt-gap);
+}
+.shelf > li { display: flex; }
+.tile {
+  --tile: var(--lt-color-primary);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-height: 12rem;
+  color: var(--lt-color-text);
+  text-decoration: none;
+  background: color-mix(in srgb, var(--tile) 12%, var(--lt-color-surface));
+  border-color: color-mix(in srgb, var(--tile) 35%, var(--lt-color-border));
+  transition: transform var(--lt-quick, 120ms) var(--lt-ease, ease);
+}
+.tile:hover, .tile:focus-visible { transform: translateY(-2px) rotate(-0.4deg); text-decoration: none; }
+@media (prefers-reduced-motion: reduce) { .tile:hover, .tile:focus-visible { transform: none; } }
+.tile-pine { --tile: var(--lt-color-primary); }
+.tile-cranberry { --tile: var(--lt-color-accent); }
+.tile-gold { --tile: var(--lt-color-warning); }
+.tile-sage { --tile: var(--lt-color-success); }
+.tile-mark { font-size: 2.2rem; line-height: 1; }
+.tile-name { font-family: var(--lt-font-display); font-weight: 700; font-size: 1.3rem; margin-top: 0.4rem; }
+.tile-blurb { color: var(--lt-color-text-muted); flex: 1; }
+.tile-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem; margin-top: 0.5rem; }
+.tile-where { color: var(--lt-color-text-muted); font-size: var(--lt-text-xs); }
 
 /* Sign-in: one narrow column. */
 .sign-in { max-width: 24rem; margin: 2.5rem auto 0; }

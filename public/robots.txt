@@ -1,2 +1,8 @@
+# The Shelf and Open Tools are for finding (ADR-0002); sign-in, admin and Invite-only
+# Tools are not.
 User-agent: *
-Disallow: /
+Allow: /$
+Disallow: /login
+Disallow: /logout
+Disallow: /people
+Disallow: /gifts

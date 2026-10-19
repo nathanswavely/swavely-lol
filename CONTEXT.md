@@ -1,25 +1,40 @@
 # swavely.lol
 
-The language of the hub at `swavely.lol`: the people it knows and how they reach the
-small tools that run beside it. Each **Tool** keeps its own language in its own repo.
-This file is a glossary, not a spec.
+The language of the hub at `swavely.lol`: the things it puts on show, the people it
+knows, and how they get in. Each **Tool** keeps its own language in its own repo. This
+file is a glossary, not a spec.
 
 ## Language
 
 **Hub**:
-The site at `swavely.lol` itself. Knows the **People**, signs them in, and lists the
-**Tools**. Owns no tool's data.
+The site at `swavely.lol` itself. Shows the **Shelf**, knows the **People**, and signs
+them in when a Tool asks it to. Owns no tool's data.
 _Avoid_: Portal (that is Swavely Creative's client site), dashboard, home
 
+**Shelf**:
+The front page of `swavely.lol`: every **Tool**, as a tile, to anyone who visits, signed in
+or not. The one page meant to be found by search.
+_Avoid_: Homepage, launcher, app selector, directory
+
 **Tool**:
-One small app at a path under `swavely.lol`, in its own repo, that asks the **Hub** who
-is signed in and keeps everything else to itself. The family gift exchange is the
-first.
-_Avoid_: App (client-ops uses App for the whole of `swavely.lol`), module, plugin
+One thing of Nathan's on the **Shelf**, **Open** or **Invite-only**. Most live at a path
+under `swavely.lol`, each in its own repo and Worker; some live on their own domain
+(Jump Back In at `jumpbackin.show`) and their tile leads there. The family gift
+exchange is the first that lives here.
+_Avoid_: App (client-ops uses App for the whole of `swavely.lol`), project, module, plugin
+
+**Open**:
+A **Tool** anyone can use without signing in. Indexed like the Shelf.
+_Avoid_: Public (everything on the Shelf is public to look at), free
+
+**Invite-only**:
+A **Tool** only **People** can use. Its tile is on the Shelf for everyone, with a lock;
+signing in happens when someone opens it, never before. Never indexed.
+_Avoid_: Private, members-only, locked
 
 **Person**:
 Someone the **Hub** knows: a name, and usually an email address. With an email they can
-sign in. Without one they cannot, and are **Managed**. A Person is never deleted for
+sign in, which they need only for **Invite-only** Tools. Without one they cannot, and are **Managed**. A Person is never deleted for
 sitting something out; each Tool decides who takes part in what.
 _Avoid_: User, member (the Portal's word), account
 

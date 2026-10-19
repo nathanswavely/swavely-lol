@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro';
 import { getEnv } from '../../lib/env';
 import { createSession, normaliseEmail, sessionCookie, verifyCode } from '../../lib/auth';
 import { personByEmail } from '../../lib/people';
-import { TOOLS, toolHref } from '../../lib/tools';
+import { toolAt, toolHref } from '../../lib/tools';
 
 /** Step two: the code. Right code, session cookie, back to where they were going. */
 const env = getEnv();
@@ -25,7 +25,7 @@ if (Astro.request.method === 'POST') {
     // A Tool sends people here with its own path as `next`; in development that path
     // lives on the Tools' origin.
     const safe = next.startsWith('/') && !next.startsWith('//') ? next : '/';
-    const to = TOOLS.some((t) => safe === t.path || safe.startsWith(t.path + '/')) ? toolHref(env, safe) : safe;
+    const to = toolAt(safe) ? toolHref(env, safe) : safe;
     return new Response(null, { status: 303, headers: { Location: to, 'Set-Cookie': sessionCookie(id, Astro.url) } });
   }
   error = {

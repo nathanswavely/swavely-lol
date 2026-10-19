@@ -2,16 +2,21 @@
 import '../styles/global.css';
 
 /**
- * The Hub's shell: a bar with the mark and who is signed in, the page, a footer. `bare`
- * is the sign-in pages. Textile finish, lol skin; light or dark from the device, or
- * the choice saved by the theme button (Liquid Textile's `lt-theme` key).
+ * The Hub's shell: a bar with the mark and either who is signed in or a way to sign in,
+ * the page, a footer. `bare` is the sign-in pages. `indexed` is the Shelf alone
+ * (ADR-0002); every other page asks search engines to stay out. Textile finish, lol
+ * skin; light or dark from the device, or the choice saved by the theme button (Liquid
+ * Textile's `lt-theme` key).
  */
 interface Props {
   title: string;
   bare?: boolean;
+  indexed?: boolean;
+  description?: string;
 }
-const { title, bare = false } = Astro.props;
+const { title, bare = false, indexed = false, description } = Astro.props;
 const viewer = bare ? undefined : Astro.locals.viewer;
+const fullTitle = title === 'swavely.lol' ? title : `${title} · swavely.lol`;
 ---
 
 <!doctype html>
@@ -19,10 +24,20 @@ const viewer = bare ? undefined : Astro.locals.viewer;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="robots" content="noindex, nofollow" />
+    <meta name="robots" content={indexed ? 'index, follow' : 'noindex, nofollow'} />
     <meta name="color-scheme" content="light dark" />
+    {description && <meta name="description" content={description} />}
+    {indexed && (
+      <>
+        <link rel="canonical" href="https://swavely.lol/" />
+        <meta property="og:title" content={fullTitle} />
+        {description && <meta property="og:description" content={description} />}
+        <meta property="og:url" content="https://swavely.lol/" />
+        <meta property="og:type" content="website" />
+      </>
+    )}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <title>{title === 'swavely.lol' ? title : `${title} · swavely.lol`}</title>
+    <title>{fullTitle}</title>
     <script is:inline>
       (function () {
         var t = null;
@@ -41,10 +56,12 @@ const viewer = bare ? undefined : Astro.locals.viewer;
             {viewer && <span class="name">{viewer.name}</span>}
             {viewer?.isHubAdmin && <a class="lt-btn lt-btn-ghost lt-btn-sm" href="/people">People</a>}
             <button type="button" class="lt-btn lt-btn-ghost lt-btn-sm" id="theme" aria-label="Switch light or dark">◐</button>
-            {viewer && (
+            {viewer ? (
               <form method="post" action="/logout">
                 <button class="lt-btn lt-btn-ghost lt-btn-sm" type="submit">Sign out</button>
               </form>
+            ) : (
+              <a class="lt-btn lt-btn-ghost lt-btn-sm" href="/login">Sign in</a>
             )}
           </div>
         </header>
@@ -52,7 +69,7 @@ const viewer = bare ? undefined : Astro.locals.viewer;
       <main>
         <slot />
       </main>
-      <footer class="foot">swavely.lol · small tools for family and friends</footer>
+      <footer class="foot">swavely.lol · small things by <a href="https://nathanswavely.com">Nathan Swavely</a></footer>
     </div>
     <script is:inline>
       (function () {
