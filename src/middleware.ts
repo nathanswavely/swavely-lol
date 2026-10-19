@@ -1,7 +1,7 @@
 import { defineMiddleware } from 'astro:middleware';
 import { getEnv } from './lib/env';
-import { viewer } from './lib/people';
-import { SESSION_COOKIE, readCookie, readSession } from './lib/auth';
+import { viewerForSession } from './lib/people';
+import { SESSION_COOKIE, readCookie } from './lib/auth';
 import { toolAt, toolHref } from './lib/tools';
 
 /**
@@ -35,9 +35,8 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   }
 
   const id = readCookie(ctx.request, SESSION_COOKIE);
-  const session = id ? await readSession(env.DB, id) : null;
-  const who = session ? await viewer(env, session.personId) : null;
-  if (session && who) ctx.locals.viewer = { ...who, sessionIdHash: session.idHash };
+  const who = id ? await viewerForSession(env, id) : null;
+  if (who) ctx.locals.viewer = who;
 
   const adminOnly = ADMIN_ONLY.some((p) => pathname === p || pathname.startsWith(p + '/'));
   if (adminOnly && !who) return ctx.redirect(`/login?next=${encodeURIComponent(pathname + ctx.url.search)}`, 302);

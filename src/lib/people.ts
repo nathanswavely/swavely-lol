@@ -1,4 +1,5 @@
 import type { Person, Viewer } from './contract';
+import { sha256Hex } from './auth';
 
 /**
  * The People the Hub knows and who manages whom. Hub Admins are named in
@@ -25,47 +26,60 @@ export function adminEmails(env: HubEnv): Set<string> {
 }
 
 interface Row { id: string; name: string; email: string | null }
+interface PersonRow extends Row { manager_ids: string }
+
+const marks = (n: number, from = 1) => Array.from({ length: n }, (_, i) => `?${i + from}`).join(',');
+
+/** A Person and who manages them, in one query: the managers come back as a JSON array. */
+const PERSON = `SELECT p.id, p.name, p.email,
+  (SELECT json_group_array(manager_id) FROM managers m WHERE m.person_id = p.id) AS manager_ids
+  FROM people p`;
+
+const toPerson = (r: PersonRow): Person => ({ id: r.id, name: r.name, email: r.email, managerIds: JSON.parse(r.manager_ids) as string[] });
 
 async function withManagers(db: D1Database, rows: Row[]): Promise<Person[]> {
-  if (rows.length === 0) return [];
-  const ids = rows.map((r) => r.id);
-  const { results } = await db
-    .prepare(`SELECT person_id, manager_id FROM managers WHERE person_id IN (${ids.map((_, i) => `?${i + 1}`).join(',')})`)
-    .bind(...ids)
-    .all<{ person_id: string; manager_id: string }>();
-  return rows.map((r) => ({
-    id: r.id,
-    name: r.name,
-    email: r.email,
-    managerIds: results.filter((m) => m.person_id === r.id).map((m) => m.manager_id),
-  }));
+  return getPeople(db, rows.map((r) => r.id));
 }
 
 export async function getPeople(db: D1Database, ids: string[]): Promise<Person[]> {
   const unique = [...new Set(ids)].slice(0, 500);
   if (unique.length === 0) return [];
-  const { results } = await db
-    .prepare(`SELECT id, name, email FROM people WHERE id IN (${unique.map((_, i) => `?${i + 1}`).join(',')})`)
-    .bind(...unique)
-    .all<Row>();
-  return withManagers(db, results);
+  const { results } = await db.prepare(`${PERSON} WHERE p.id IN (${marks(unique.length)})`).bind(...unique).all<PersonRow>();
+  return results.map(toPerson);
 }
 
 export async function allPeople(db: D1Database): Promise<Person[]> {
-  const { results } = await db.prepare('SELECT id, name, email FROM people ORDER BY name COLLATE NOCASE').all<Row>();
-  return withManagers(db, results);
+  const { results } = await db.prepare(`${PERSON} ORDER BY p.name COLLATE NOCASE`).all<PersonRow>();
+  return results.map(toPerson);
 }
 
 export async function personByEmail(db: D1Database, email: string): Promise<Row | null> {
   return db.prepare('SELECT id, name, email FROM people WHERE email = ?1').bind(email).first<Row>();
 }
 
-/** The Viewer behind a Person id, or null if the Person is gone. */
-export async function viewer(env: HubEnv, personId: string): Promise<Viewer | null> {
-  const [p] = await getPeople(env.DB, [personId]);
-  if (!p) return null;
-  const { results } = await env.DB.prepare('SELECT person_id FROM managers WHERE manager_id = ?1').bind(personId).all<{ person_id: string }>();
-  return { ...p, isHubAdmin: !!p.email && adminEmails(env).has(p.email), manages: results.map((r) => r.person_id) };
+/**
+ * Who holds this session cookie value, in one query: the session, its Person, who
+ * manages them and whom they manage. Null for an unknown, expired or malformed session,
+ * or a Person who has gone. Touches last_seen_at at most hourly, the one extra write.
+ */
+export async function viewerForSession(env: HubEnv, sessionId: string): Promise<(Viewer & { sessionIdHash: string }) | null> {
+  if (!/^[A-Za-z0-9_-]{40,50}$/.test(sessionId)) return null;
+  const idHash = await sha256Hex(sessionId);
+  const t = now();
+  const row = await env.DB
+    .prepare(`SELECT p.id, p.name, p.email, s.last_seen_at,
+        (SELECT json_group_array(manager_id) FROM managers WHERE person_id = p.id) AS manager_ids,
+        (SELECT json_group_array(person_id) FROM managers WHERE manager_id = p.id) AS manages
+      FROM sessions s JOIN people p ON p.id = s.person_id
+      WHERE s.id_hash = ?1 AND s.expires_at > ?2`)
+    .bind(idHash, t)
+    .first<PersonRow & { last_seen_at: number; manages: string }>();
+  if (!row) return null;
+  if (t - row.last_seen_at > 3600) {
+    await env.DB.prepare('UPDATE sessions SET last_seen_at = ?1 WHERE id_hash = ?2').bind(t, idHash).run();
+  }
+  const p = toPerson(row);
+  return { ...p, isHubAdmin: !!p.email && adminEmails(env).has(p.email), manages: JSON.parse(row.manages) as string[], sessionIdHash: idHash };
 }
 
 /**

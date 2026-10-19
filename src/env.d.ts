@@ -13,6 +13,8 @@ interface HubEnv {
   DEV_SEND_MAIL?: string;
   /** Development only: where Tools run (http://localhost:4332). Production: same origin. */
   TOOLS_ORIGIN?: string;
+  /** Development only: milliseconds to add to every database call (dev-latency.ts). */
+  DEV_DB_LATENCY_MS?: string;
   /** People, managers, codes and sessions. */
   DB: D1Database;
 }

@@ -4,3 +4,5 @@ ADMIN_EMAILS=homer@example.com
 TOOLS_ORIGIN=http://localhost:4332
 # '1' sends real mail through Resend in development; otherwise codes are shown on the page.
 DEV_SEND_MAIL=0
+# Milliseconds to add to every database call, to feel production's round trips (dev-latency.ts).
+DEV_DB_LATENCY_MS=15

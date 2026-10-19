@@ -1,9 +1,9 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
 import server from '@astrojs/cloudflare/entrypoints/server';
-import { readSession } from './lib/auth';
+import { getEnv } from './lib/env';
 import type { HubApiContract, Notice, Person, Viewer } from './lib/contract';
 import { notify } from './lib/mail';
-import { addPerson, getPeople, removedSince, setManagers, viewer } from './lib/people';
+import { addPerson, getPeople, removedSince, setManagers, viewerForSession } from './lib/people';
 
 /**
  * The Hub's Worker: the Astro app for every request on swavely.lol, and HubApi, the
@@ -16,36 +16,38 @@ import { addPerson, getPeople, removedSince, setManagers, viewer } from './lib/p
  */
 export class HubApi extends WorkerEntrypoint<HubEnv> implements HubApiContract {
   async whoIs(sessionId: string): Promise<Viewer | null> {
-    const session = await readSession(this.env.DB, sessionId);
-    return session ? viewer(this.env, session.personId) : null;
+    const who = await viewerForSession(getEnv(), sessionId);
+    if (!who) return null;
+    const { sessionIdHash: _, ...viewer } = who;
+    return viewer;
   }
 
   async people(ids: string[]): Promise<Person[]> {
-    return getPeople(this.env.DB, ids);
+    return getPeople(getEnv().DB, ids);
   }
 
   async addPerson(input: { name: string; email?: string | null; addedBy: string }) {
-    return addPerson(this.env.DB, input);
+    return addPerson(getEnv().DB, input);
   }
 
   async renameManaged(personId: string, name: string): Promise<boolean> {
     const clean = name.trim().slice(0, 80);
     if (!clean) return false;
-    const r = await this.env.DB.prepare('UPDATE people SET name = ?1 WHERE id = ?2 AND email IS NULL').bind(clean, personId).run();
+    const r = await getEnv().DB.prepare('UPDATE people SET name = ?1 WHERE id = ?2 AND email IS NULL').bind(clean, personId).run();
     return (r.meta.changes ?? 0) > 0;
   }
 
   async setManagers(personId: string, managerIds: string[]): Promise<boolean> {
-    return setManagers(this.env.DB, personId, managerIds);
+    return setManagers(getEnv().DB, personId, managerIds);
   }
 
   async notify(personIds: string[], notice: Notice) {
-    const origin = this.env.TOOLS_ORIGIN || 'https://swavely.lol';
-    return notify(this.env, origin, personIds, notice);
+    const origin = getEnv().TOOLS_ORIGIN || 'https://swavely.lol';
+    return notify(getEnv(), origin, personIds, notice);
   }
 
   async removedSince(since: number): Promise<{ id: string; removedAt: number }[]> {
-    return removedSince(this.env.DB, since);
+    return removedSince(getEnv().DB, since);
   }
 }
 
