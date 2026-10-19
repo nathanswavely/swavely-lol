@@ -45,7 +45,10 @@ body { background: var(--lt-color-bg); }
 .site-foot { margin-top: 4rem; text-align: center; }
 .site-foot p { margin: 0 0 0.9rem; }
 .foot-links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; }
-.foot-links .lt-btn { border-radius: 999px; gap: 0.5rem; }
+/* Pills by token, not by border-radius: the textile stitch computes its own corners from
+   --lt-radius-control, so a radius set directly leaves the stitch square inside a round
+   button. */
+.foot-links .lt-btn { --lt-radius-control: 999px; gap: 0.5rem; }
 
 h1.page { margin: 0 0 0.25rem; font-family: var(--lt-font-display); font-size: 1.7rem; letter-spacing: -0.01em; }
 .page-lead { margin: 0 0 var(--lt-stack); color: var(--lt-color-text-muted); }
