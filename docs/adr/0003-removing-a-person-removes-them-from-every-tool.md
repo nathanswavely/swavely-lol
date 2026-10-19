@@ -23,8 +23,13 @@ about People reads that list on a schedule and deletes what it holds of each.
   "the Hub no longer knows this id" as a removal.
 - **Each Tool decides what "what they added" means** and records it in its own repo. The
   gift exchange deletes their Wish list and every Claim to or from it, their Exclusions,
-  their place in every Group and Exchange, and mends a drawn Exchange by Re-pairing
-  (gift-exchange ADR-0002).
+  their place in every Group and Exchange, and their Pairings (gift-exchange ADR-0002).
+- **A purge never acts for the people left behind.** It deletes; it does not decide
+  for them or email them. When a removal leaves a Tool's shared thing broken, that
+  Tool's own people mend it. In the gift exchange (Nathan, 2026-10-19: "leave to
+  organizer for now"), a drawn Exchange that loses someone is not Re-paired by the
+  purge: their Giver is told their name was withdrawn, and the Exchange's Organizers
+  see "Re-pair now", which runs the usual Re-pairing and its emails only when pressed.
 - **The tombstones stay.** A bare random id says nothing about anyone once the row behind
   it is gone, and keeping them lets a Tool that was down, or added later, catch up.
 
