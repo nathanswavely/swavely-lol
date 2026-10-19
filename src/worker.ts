@@ -3,7 +3,7 @@ import server from '@astrojs/cloudflare/entrypoints/server';
 import { readSession } from './lib/auth';
 import type { HubApiContract, Notice, Person, Viewer } from './lib/contract';
 import { notify } from './lib/mail';
-import { addPerson, getPeople, setManagers, viewer } from './lib/people';
+import { addPerson, getPeople, removedSince, setManagers, viewer } from './lib/people';
 
 /**
  * The Hub's Worker: the Astro app for every request on swavely.lol, and HubApi, the
@@ -42,6 +42,10 @@ export class HubApi extends WorkerEntrypoint<HubEnv> implements HubApiContract {
   async notify(personIds: string[], notice: Notice) {
     const origin = this.env.TOOLS_ORIGIN || 'https://swavely.lol';
     return notify(this.env, origin, personIds, notice);
+  }
+
+  async removedSince(since: number): Promise<{ id: string; removedAt: number }[]> {
+    return removedSince(this.env.DB, since);
   }
 }
 

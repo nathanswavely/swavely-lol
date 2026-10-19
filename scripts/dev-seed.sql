@@ -2,7 +2,7 @@
 -- the repo is public (ADR-0001). Homer is the Hub Admin in .dev.vars.example. Bart and
 -- Maggie have no email and are Managed by Homer and Marge. The gift exchange's own seed
 -- refers to these ids.
-DELETE FROM sessions; DELETE FROM login_codes; DELETE FROM managers; DELETE FROM people;
+DELETE FROM sessions; DELETE FROM login_codes; DELETE FROM managers; DELETE FROM people; DELETE FROM removed_people;
 INSERT INTO people (id, name, email, added_by, added_at) VALUES
   ('p_homer',  'Homer Simpson',  'homer@example.com', NULL, 0),
   ('p_marge',  'Marge Simpson',  'marge@example.com', 'p_homer', 0),

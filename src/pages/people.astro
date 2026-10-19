@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 import { getEnv } from '../lib/env';
 import { endAllSessions, normaliseEmail } from '../lib/auth';
-import { addPerson, adminEmails, allPeople, setManagers } from '../lib/people';
+import { addPerson, adminEmails, allPeople, removePerson, setManagers } from '../lib/people';
 
 /**
  * The Hub Admin's list of every Person: add, rename, change an address, say who
@@ -47,8 +47,8 @@ if (Astro.request.method === 'POST') {
     const n = await endAllSessions(env.DB, id);
     notice = { tone: 'success', text: n === 1 ? 'Signed out of one browser.' : `Signed out of ${n} browsers.` };
   } else if (action === 'remove' && id && id !== viewer.id) {
-    await env.DB.prepare('DELETE FROM people WHERE id = ?1').bind(id).run();
-    notice = { tone: 'success', text: 'Removed. Their Tools keep what they hold, under "Someone".' };
+    await removePerson(env.DB, id);
+    notice = { tone: 'success', text: 'Removed. Each Tool deletes what they added within the hour.' };
   }
 }
 
@@ -115,7 +115,7 @@ const emailed = people.filter((p) => p.email);
                 <form method="post"><input type="hidden" name="action" value="signout" /><input type="hidden" name="id" value={p.id} /><button class="lt-btn lt-btn-sm" type="submit">Sign out everywhere</button></form>
               )}
               {p.id !== viewer.id && (
-                <form method="post" onsubmit="return confirm('Remove this person from swavely.lol?')"><input type="hidden" name="action" value="remove" /><input type="hidden" name="id" value={p.id} /><button class="lt-btn lt-btn-danger lt-btn-sm" type="submit">Remove</button></form>
+                <form method="post" onsubmit="return confirm('Remove this person from swavely.lol, with everything they added in every Tool? This cannot be undone.')"><input type="hidden" name="action" value="remove" /><input type="hidden" name="id" value={p.id} /><button class="lt-btn lt-btn-danger lt-btn-sm" type="submit">Remove</button></form>
               )}
             </div>
           </details>

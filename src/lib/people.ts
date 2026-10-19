@@ -95,6 +95,33 @@ export async function addPerson(db: D1Database, input: { name: string; email?: s
   return { person: { id, name: name || email || 'Someone', email, managerIds: [] }, existed: false };
 }
 
+/**
+ * Remove a Person from swavely.lol (ADR-0003): their row, and with it their sessions and
+ * who they manage or are managed by; any code still waiting for their address; and a
+ * tombstone of their bare id, from which every Tool removes what it holds of them.
+ */
+export async function removePerson(db: D1Database, id: string): Promise<boolean> {
+  const row = await db.prepare('SELECT email FROM people WHERE id = ?1').bind(id).first<{ email: string | null }>();
+  if (!row) return false;
+  await db.batch([
+    db.prepare('INSERT OR IGNORE INTO removed_people (id, removed_at) VALUES (?1, ?2)').bind(id, now()),
+    db.prepare('DELETE FROM login_codes WHERE email = ?1').bind(row.email ?? ''),
+    db.prepare('DELETE FROM sessions WHERE person_id = ?1').bind(id),
+    db.prepare('DELETE FROM managers WHERE person_id = ?1 OR manager_id = ?1').bind(id),
+    db.prepare('DELETE FROM people WHERE id = ?1').bind(id),
+  ]);
+  return true;
+}
+
+/** Everyone removed at or after `since` (unix seconds), oldest first. */
+export async function removedSince(db: D1Database, since: number): Promise<{ id: string; removedAt: number }[]> {
+  const { results } = await db
+    .prepare('SELECT id, removed_at FROM removed_people WHERE removed_at >= ?1 ORDER BY removed_at LIMIT 500')
+    .bind(Math.max(0, Math.floor(since) || 0))
+    .all<{ id: string; removed_at: number }>();
+  return results.map((r) => ({ id: r.id, removedAt: r.removed_at }));
+}
+
 export async function setManagers(db: D1Database, personId: string, managerIds: string[]): Promise<boolean> {
   const target = await db.prepare('SELECT email FROM people WHERE id = ?1').bind(personId).first<{ email: string | null }>();
   if (!target || target.email) return false; // only a Managed Person has managers

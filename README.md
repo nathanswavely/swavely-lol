@@ -20,8 +20,11 @@ pieces fit.
   child, a grandparent) is *Managed*: the people who look after them act for them.
 - **Answers the Tools.** `HubApi` (src/worker.ts) is an RPC entrypoint a Tool reaches over
   a Cloudflare service binding: who holds this session, who are these People, add
-  someone, email someone. It is not reachable from the internet. The promise is
-  [src/lib/contract.ts](src/lib/contract.ts).
+  someone, email someone, who has been removed. It is not reachable from the internet.
+  The promise is [src/lib/contract.ts](src/lib/contract.ts).
+- **Removes people everywhere.** Removing a Person on the People page leaves only their
+  bare id on a list; each Tool reads it on a schedule and deletes what they added
+  ([ADR-0003](docs/adr/0003-removing-a-person-removes-them-from-every-tool.md)).
 
 ## Stack
 
@@ -56,4 +59,6 @@ origin.
 
 A new repo with its own Worker and route (`swavely.lol/<path>*`), a `HUB` service
 binding with `entrypoint: "HubApi"`, a copy of `src/lib/contract.ts`, and a line in
-[src/lib/tools.ts](src/lib/tools.ts).
+[src/lib/tools.ts](src/lib/tools.ts). A Tool that stores anything about a Person also
+needs a cron trigger that asks `removedSince` and deletes it (ADR-0003); the gift
+exchange's `src/lib/purge.ts` is the pattern.

@@ -41,8 +41,16 @@ _Avoid_: Private, members-only, locked
 **Person**:
 Someone the **Hub** knows: a name, and usually an email address. With an email they can
 sign in, which they need only for **Invite-only** Tools. Without one they cannot, and are **Managed**. A Person is never deleted for
-sitting something out; each Tool decides who takes part in what.
+sitting something out; each Tool decides who takes part in what. When a Person is
+**Removed**, it is from every Tool too.
 _Avoid_: User, member (the Portal's word), account
+
+**Removed**:
+Said of a **Person** a **Hub Admin** has taken off swavely.lol, usually because they asked.
+The Hub forgets them, keeping only their bare id on a list every Tool reads, and each
+Tool deletes what that Person added (ADR-0003). Not the same as leaving a Group or
+sitting a year out, which are a Tool's business.
+_Avoid_: Deleted, deactivated, archived
 
 **Hub Admin**:
 A Person who sees every Person and every **Tool's** settings, and who alone may hand
