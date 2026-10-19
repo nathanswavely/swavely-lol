@@ -16,6 +16,8 @@ export interface Tool {
   /** A single glyph for the tile. */
   mark: string;
   repo?: string;
+  /** Built but not open to use yet; the tile says so instead of its access. */
+  soon?: boolean;
 }
 
 export const TOOLS: Tool[] = [
@@ -36,6 +38,32 @@ export const TOOLS: Tool[] = [
     colour: 'pine',
     mark: '📺',
     repo: 'https://github.com/nathanswavely/episode-finder',
+  },
+  {
+    name: 'Showliner',
+    blurb: 'Booking and show-night software for independent venues and artists.',
+    href: 'https://showliner.io',
+    access: 'open',
+    colour: 'gold',
+    mark: '🎤',
+  },
+  {
+    name: 'Lancaster Patchwork',
+    blurb: 'A living culture map and calendar for Lancaster, PA.',
+    href: 'https://lancasterpatchwork.org',
+    access: 'open',
+    colour: 'sage',
+    mark: '🧵',
+    repo: 'https://github.com/nathanswavely/patchwork',
+  },
+  {
+    name: 'quilt.host',
+    blurb: 'Managed hosting for Patchwork instances.',
+    href: 'https://quilt.host',
+    access: 'open',
+    colour: 'cranberry',
+    mark: '🪡',
+    soon: true,
   },
 ];
 

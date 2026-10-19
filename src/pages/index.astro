@@ -32,9 +32,11 @@ const host = (href: string) => new URL(href).hostname;
           <span class="tile-name">{t.name}</span>
           <span class="tile-blurb">{t.blurb}</span>
           <span class="tile-foot">
-            {t.access === 'invite'
-              ? <span class="lt-tag lt-tone-muted">🔒 Invite-only</span>
-              : <span class="lt-tag lt-tone-success">Open to all</span>}
+            {t.soon
+              ? <span class="lt-tag lt-tone-warning">Not open yet</span>
+              : t.access === 'invite'
+                ? <span class="lt-tag lt-tone-muted">🔒 Invite-only</span>
+                : <span class="lt-tag lt-tone-success">Open to all</span>}
             {isExternal(t) && <span class="tile-where">{host(t.href)} ↗</span>}
           </span>
         </a>
