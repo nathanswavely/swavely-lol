@@ -45,6 +45,14 @@ Rejected.
 session cannot be ended before it expires, and ending one is ADR-0009's whole answer to
 a lost phone. Rejected.
 
+**Each Tool on its own subdomain** (`gifts.swavely.lol`), asked about 2026-10-19.
+Subdomains of swavely.lol are Sandboxes (client-ops ADR-0007), and the session cookie is
+host-only so that no Sandbox, some of them client WordPress, ever receives it. A Tool
+on a subdomain would need that cookie widened to `.swavely.lol`, which hands every
+Sandbox a family member's session, or a sign-in handoff with a session per Tool.
+Rejected; paths keep one sign-in free. A short name can still be a redirect to the
+path, as www is. Revisit only if Sandboxes move off swavely.lol.
+
 **The Hub forwards each Tool's requests to it.** One public Worker, Tools reachable only
 behind it. It needs bindings both ways (the Tool also adds People), a cycle to bootstrap
 on every fresh deploy. Rejected for routes.
