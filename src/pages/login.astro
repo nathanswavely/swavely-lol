@@ -1,0 +1,63 @@
+---
+import Base from '../layouts/Base.astro';
+import { getEnv } from '../lib/env';
+import { issueCode, normaliseEmail } from '../lib/auth';
+import { sendSignInCode } from '../lib/mail';
+import { personForSignIn } from '../lib/people';
+
+/**
+ * Step one of sign-in: an email address. Whatever is typed, the answer is the same
+ * page, so the form cannot be used to learn who the Hub knows. A code is issued and
+ * sent only to a Person the Hub knows or a Hub Admin.
+ */
+const env = getEnv();
+const next = Astro.url.searchParams.get('next') ?? '';
+const prefill = normaliseEmail(Astro.url.searchParams.get('email') ?? '') ?? '';
+let error: string | undefined;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const email = normaliseEmail(String(form.get('email') ?? ''));
+  if (!email) {
+    error = 'Enter a valid email address.';
+  } else {
+    const known = await personForSignIn(env, email);
+    let devCode: string | undefined;
+    if (known) {
+      const issued = await issueCode(env.DB, email);
+      if (issued.ok) {
+        const sent = await sendSignInCode(env, email, issued.code);
+        if (sent.devCode) devCode = sent.devCode;
+        if (!sent.sent && !sent.dev) error = 'The code could not be sent. Try again shortly.';
+      }
+    }
+    if (!error) {
+      const q = new URLSearchParams({ email });
+      if (next) q.set('next', next);
+      if (devCode && import.meta.env.DEV) q.set('dev_code', devCode);
+      return Astro.redirect(`/login/verify?${q}`, 303);
+    }
+  }
+}
+---
+
+<Base title="Sign in" bare>
+  <div class="sign-in">
+    <div class="mark"><img src="/favicon.svg" alt="" width="36" height="36" />swavely.lol</div>
+    <div class="lt-card">
+      <h2 style="margin-top:0">Sign in</h2>
+      <p class="lt-muted small" style="margin:0 0 1rem">We'll email you a code. No password.</p>
+      {error && <div class="lt-callout lt-tone-error" style="margin-bottom:1rem">{error}</div>}
+      <form method="post" class="lt-form">
+        <label class="lt-label">
+          <span>Email</span>
+          <input class="lt-field" type="email" name="email" autocomplete="email" inputmode="email" required autofocus value={prefill} />
+        </label>
+        <div class="lt-actions">
+          <button class="lt-btn lt-btn-primary" type="submit">Send me a code</button>
+        </div>
+      </form>
+    </div>
+    <p class="fine lt-muted" style="margin-top:1rem">Not getting a code? Whoever invited you can check the address they used.</p>
+  </div>
+</Base>

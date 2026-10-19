@@ -1,0 +1,23 @@
+---
+import Base from '../layouts/Base.astro';
+import { getEnv } from '../lib/env';
+import { TOOLS, toolHref } from '../lib/tools';
+
+/** The Hub's front page: hello, and the Tools. */
+const env = getEnv();
+const viewer = Astro.locals.viewer;
+const first = viewer.name.split(' ')[0];
+---
+
+<Base title="swavely.lol">
+  <h1 class="page">Hi, {first}</h1>
+  <p class="page-lead">Small tools for family and friends.</p>
+  <div class="tools">
+    {TOOLS.map((t) => (
+      <a class="lt-card tool-card" href={toolHref(env, t.path)}>
+        <h2>{t.name}</h2>
+        <p>{t.blurb}</p>
+      </a>
+    ))}
+  </div>
+</Base>

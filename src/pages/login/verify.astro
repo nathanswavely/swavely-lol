@@ -1,0 +1,69 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getEnv } from '../../lib/env';
+import { createSession, normaliseEmail, sessionCookie, verifyCode } from '../../lib/auth';
+import { personByEmail } from '../../lib/people';
+import { TOOLS, toolHref } from '../../lib/tools';
+
+/** Step two: the code. Right code, session cookie, back to where they were going. */
+const env = getEnv();
+const email = normaliseEmail(Astro.url.searchParams.get('email') ?? '');
+const next = Astro.url.searchParams.get('next') ?? '';
+const devCode = import.meta.env.DEV ? Astro.url.searchParams.get('dev_code') : null;
+const resent = Astro.url.searchParams.has('resent');
+if (!email) return Astro.redirect('/login', 302);
+
+let error: string | undefined;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const code = String(form.get('code') ?? '');
+  const result = await verifyCode(env.DB, email, code);
+  const person = result === 'ok' ? await personByEmail(env.DB, email) : null;
+  if (person) {
+    const id = await createSession(env.DB, person.id, Astro.request.headers.get('User-Agent'));
+    // A Tool sends people here with its own path as `next`; in development that path
+    // lives on the Tools' origin.
+    const safe = next.startsWith('/') && !next.startsWith('//') ? next : '/';
+    const to = TOOLS.some((t) => safe === t.path || safe.startsWith(t.path + '/')) ? toolHref(env, safe) : safe;
+    return new Response(null, { status: 303, headers: { Location: to, 'Set-Cookie': sessionCookie(id, Astro.url) } });
+  }
+  error = {
+    ok: 'That address is no longer on the list.',
+    wrong: 'Incorrect code.',
+    expired: 'That code has expired. Send a new one.',
+    locked: 'Too many attempts. Send a new code.',
+    none: 'No code is pending. Send one.',
+  }[result];
+}
+
+const resendQuery = new URLSearchParams({ email });
+if (next) resendQuery.set('next', next);
+---
+
+<Base title="Enter your code" bare>
+  <div class="sign-in">
+    <div class="mark"><img src="/favicon.svg" alt="" width="36" height="36" />swavely.lol</div>
+    <div class="lt-card">
+      <h2 style="margin-top:0">Enter your code</h2>
+      <p class="lt-muted small" style="margin:0 0 1rem">If <strong>{email}</strong> is on the list, a code is on its way.</p>
+      {resent && <div class="lt-callout lt-tone-primary" style="margin-bottom:1rem">A new code is on its way.</div>}
+      {devCode && <div class="lt-callout lt-tone-warning" style="margin-bottom:1rem">Development: the code is <span class="lt-mono">{devCode}</span>.</div>}
+      {error && <div class="lt-callout lt-tone-error" style="margin-bottom:1rem">{error}</div>}
+      <form method="post" class="lt-form">
+        <label class="lt-label">
+          <span>Code</span>
+          <input class="lt-field lt-mono code" type="text" name="code" inputmode="numeric" pattern="[0-9 ]*" autocomplete="one-time-code" maxlength="7" required autofocus />
+        </label>
+        <div class="lt-actions">
+          <button class="lt-btn lt-btn-primary" type="submit">Sign in</button>
+          <a class="lt-btn lt-btn-ghost" href="/login">Use a different email</a>
+        </div>
+      </form>
+    </div>
+    <form method="post" action={`/login/resend?${resendQuery}`} class="row fine lt-muted" style="margin-top:1rem">
+      <span>Didn't get it?</span>
+      <button type="submit" class="lt-btn lt-btn-link lt-btn-sm">Send again</button>
+    </form>
+  </div>
+</Base>

@@ -1,0 +1,6 @@
+# Copy to .dev.vars for `npm run dev`. Nothing here is real.
+ADMIN_EMAILS=homer@example.com
+# Where Tools run locally, so the Hub's list links to them (production: same origin).
+TOOLS_ORIGIN=http://localhost:4332
+# '1' sends real mail through Resend in development; otherwise codes are shown on the page.
+DEV_SEND_MAIL=0

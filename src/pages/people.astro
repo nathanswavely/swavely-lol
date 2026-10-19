@@ -1,0 +1,126 @@
+---
+import Base from '../layouts/Base.astro';
+import { getEnv } from '../lib/env';
+import { endAllSessions, normaliseEmail } from '../lib/auth';
+import { addPerson, adminEmails, allPeople, setManagers } from '../lib/people';
+
+/**
+ * The Hub Admin's list of every Person: add, rename, change an address, say who
+ * manages a Managed Person, sign someone out everywhere, remove. Organizers add people
+ * from inside their Tool; this page is for everything else.
+ */
+const env = getEnv();
+const viewer = Astro.locals.viewer;
+let notice: { tone: 'success' | 'error'; text: string } | undefined;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = String(form.get('action') ?? '');
+  const id = String(form.get('id') ?? '');
+  const name = String(form.get('name') ?? '').trim();
+  const rawEmail = String(form.get('email') ?? '').trim();
+  const email = rawEmail ? normaliseEmail(rawEmail) : null;
+
+  if (action === 'add') {
+    if (!name) notice = { tone: 'error', text: 'A name is needed.' };
+    else if (rawEmail && !email) notice = { tone: 'error', text: 'That email address does not look right.' };
+    else {
+      const r = await addPerson(env.DB, { name, email, addedBy: viewer.id });
+      notice = r.existed ? { tone: 'error', text: `${r.person.name} already has that address.` } : { tone: 'success', text: `${r.person.name} added.` };
+    }
+  } else if (action === 'edit' && id) {
+    if (!name) notice = { tone: 'error', text: 'A name is needed.' };
+    else if (rawEmail && !email) notice = { tone: 'error', text: 'That email address does not look right.' };
+    else {
+      const clash = email ? await env.DB.prepare('SELECT id FROM people WHERE email = ?1 AND id != ?2').bind(email, id).first() : null;
+      if (clash) notice = { tone: 'error', text: 'Someone else has that address.' };
+      else {
+        await env.DB.prepare('UPDATE people SET name = ?1, email = ?2 WHERE id = ?3').bind(name, email, id).run();
+        if (email) await env.DB.prepare('DELETE FROM managers WHERE person_id = ?1').bind(id).run();
+        notice = { tone: 'success', text: `${name} saved.` };
+      }
+    }
+  } else if (action === 'managers' && id) {
+    await setManagers(env.DB, id, form.getAll('manager').map(String));
+    notice = { tone: 'success', text: 'Managers saved.' };
+  } else if (action === 'signout' && id) {
+    const n = await endAllSessions(env.DB, id);
+    notice = { tone: 'success', text: n === 1 ? 'Signed out of one browser.' : `Signed out of ${n} browsers.` };
+  } else if (action === 'remove' && id && id !== viewer.id) {
+    await env.DB.prepare('DELETE FROM people WHERE id = ?1').bind(id).run();
+    notice = { tone: 'success', text: 'Removed. Their Tools keep what they hold, under "Someone".' };
+  }
+}
+
+const people = await allPeople(env.DB);
+const admins = adminEmails(env);
+const byId = new Map(people.map((p) => [p.id, p]));
+const emailed = people.filter((p) => p.email);
+---
+
+<Base title="People">
+  <h1 class="page">People</h1>
+  <p class="page-lead">Everyone swavely.lol knows. Someone without an email can't sign in; the people who manage them act for them.</p>
+
+  {notice && <div class={`lt-callout lt-tone-${notice.tone}`} style="margin-bottom:1rem">{notice.text}</div>}
+
+  <section class="lt-card" style="margin-bottom:var(--lt-stack)">
+    <h2 style="margin-top:0">Add someone</h2>
+    <form method="post" class="lt-form">
+      <input type="hidden" name="action" value="add" />
+      <div class="lt-field-row">
+        <label class="lt-label"><span>Name</span><input class="lt-field" name="name" required /></label>
+        <label class="lt-label"><span>Email <span class="lt-optional">(optional)</span></span><input class="lt-field" type="email" name="email" /></label>
+      </div>
+      <div class="lt-actions"><button class="lt-btn lt-btn-primary" type="submit">Add</button></div>
+    </form>
+  </section>
+
+  <section class="lt-card">
+    {people.map((p) => (
+      <div class="lt-item">
+        <div class="lt-item-main">
+          <div>
+            <span class="person-name">{p.name}</span>
+            {p.email && admins.has(p.email) && <span class="lt-tag lt-tone-primary" style="margin-left:0.4rem">Hub Admin</span>}
+            {!p.email && <span class="lt-tag lt-tone-muted" style="margin-left:0.4rem">Managed</span>}
+          </div>
+          <div class="lt-muted small">
+            {p.email ?? (p.managerIds.length ? `Managed by ${p.managerIds.map((m) => byId.get(m)?.name ?? 'someone').join(', ')}` : 'Nobody manages them yet')}
+          </div>
+          <details class="edit">
+            <summary>Edit</summary>
+            <form method="post" class="lt-form">
+              <input type="hidden" name="action" value="edit" />
+              <input type="hidden" name="id" value={p.id} />
+              <div class="lt-field-row">
+                <label class="lt-label"><span>Name</span><input class="lt-field" name="name" value={p.name} required /></label>
+                <label class="lt-label"><span>Email</span><input class="lt-field" type="email" name="email" value={p.email ?? ''} /></label>
+              </div>
+              <div class="lt-actions"><button class="lt-btn lt-btn-primary lt-btn-sm" type="submit">Save</button></div>
+            </form>
+            {!p.email && (
+              <form method="post" class="lt-form">
+                <input type="hidden" name="action" value="managers" />
+                <input type="hidden" name="id" value={p.id} />
+                <span class="lt-label">Managed by</span>
+                {emailed.map((m) => (
+                  <label class="lt-check"><input type="checkbox" name="manager" value={m.id} checked={p.managerIds.includes(m.id)} /> {m.name}</label>
+                ))}
+                <div class="lt-actions"><button class="lt-btn lt-btn-sm" type="submit">Save managers</button></div>
+              </form>
+            )}
+            <div class="lt-actions" style="margin-top:0.75rem">
+              {p.email && (
+                <form method="post"><input type="hidden" name="action" value="signout" /><input type="hidden" name="id" value={p.id} /><button class="lt-btn lt-btn-sm" type="submit">Sign out everywhere</button></form>
+              )}
+              {p.id !== viewer.id && (
+                <form method="post" onsubmit="return confirm('Remove this person from swavely.lol?')"><input type="hidden" name="action" value="remove" /><input type="hidden" name="id" value={p.id} /><button class="lt-btn lt-btn-danger lt-btn-sm" type="submit">Remove</button></form>
+              )}
+            </div>
+          </details>
+        </div>
+      </div>
+    ))}
+  </section>
+</Base>

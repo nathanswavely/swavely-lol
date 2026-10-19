@@ -1,0 +1,45 @@
+// The Hub at swavely.lol (ADR-0001; client-ops ADR-0012).
+//
+// An Astro server build on a Cloudflare Worker. `main` is src/worker.ts, which is the
+// adapter's own entrypoint plus the RPC class Tools call over a service binding
+// (HubApi). Deploy is `npm run deploy`.
+//
+// The route takes everything on the apex; a Tool's more specific route
+// (swavely.lol/gifts*) wins for its own path. The apex needs a proxied DNS record for a
+// route to match: an AAAA to 100:: is the usual placeholder.
+//
+// Secrets, set with `wrangler secret put`, never written here:
+//   ADMIN_EMAILS     the Hub Admins, comma-separated (a secret so the repo stays clean)
+//   RESEND_API_KEY   sends every email the Hub and its Tools send, from send.swavely.lol
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "swavely-lol",
+  "main": "./src/worker.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "workers_dev": false,
+  "preview_urls": false,
+
+  "routes": [
+    { "pattern": "swavely.lol/*", "zone_name": "swavely.lol" }
+  ],
+
+  "observability": { "enabled": true },
+
+  "vars": {
+    "MAIL_FROM": "swavely.lol <hello@send.swavely.lol>"
+  },
+
+  // People, managers, sign-in codes and sessions (migrations/). Create it with
+  // `wrangler d1 create swavely-lol` and put its id here; locally the Vite plugin
+  // provides one under .wrangler/state.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "swavely-lol",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ]
+}
