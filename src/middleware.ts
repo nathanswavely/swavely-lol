@@ -21,6 +21,12 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   const { pathname } = ctx.url;
   const env = getEnv();
 
+  // www.swavely.lol is routed here only to send people to the apex, where the session
+  // cookie (host-only) lives.
+  if (ctx.url.hostname === 'www.swavely.lol' || ctx.request.headers.get('Host') === 'www.swavely.lol') {
+    return Response.redirect(`https://swavely.lol${pathname}${ctx.url.search}`, 301);
+  }
+
   if (ctx.request.method !== 'GET' && ctx.request.method !== 'HEAD') {
     const site = ctx.request.headers.get('Sec-Fetch-Site');
     const origin = ctx.request.headers.get('Origin');

@@ -24,7 +24,9 @@
   "preview_urls": false,
 
   "routes": [
-    { "pattern": "swavely.lol/*", "zone_name": "swavely.lol" }
+    { "pattern": "swavely.lol/*", "zone_name": "swavely.lol" },
+    // Redirected to the apex by src/middleware.ts. Needs the www record proxied.
+    { "pattern": "www.swavely.lol/*", "zone_name": "swavely.lol" }
   ],
 
   "observability": { "enabled": true },
