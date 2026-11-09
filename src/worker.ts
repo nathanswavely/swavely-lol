@@ -1,9 +1,10 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
 import server from '@astrojs/cloudflare/entrypoints/server';
 import { getEnv } from './lib/env';
-import type { HubApiContract, Notice, Person, Viewer } from './lib/contract';
+import type { HubApiContract, Notice, Person, Viewer } from '@swavely-lol/kit/contract';
 import { notify } from './lib/mail';
 import { addPerson, getPeople, removedSince, setManagers, viewerForSession } from './lib/people';
+import { toolOrigin } from './lib/tools';
 
 /**
  * The Hub's Worker: the Astro app for every request on swavely.lol, and HubApi, the
@@ -26,7 +27,7 @@ export class HubApi extends WorkerEntrypoint<HubEnv> implements HubApiContract {
     return getPeople(getEnv().DB, ids);
   }
 
-  async addPerson(input: { name: string; email?: string | null; addedBy: string }) {
+  async addPerson(input: { name: string; email?: string | null; addedBy: string; via?: string }) {
     return addPerson(getEnv().DB, input);
   }
 
@@ -42,8 +43,10 @@ export class HubApi extends WorkerEntrypoint<HubEnv> implements HubApiContract {
   }
 
   async notify(personIds: string[], notice: Notice) {
-    const origin = getEnv().TOOLS_ORIGIN || 'https://swavely.lol';
-    return notify(getEnv(), origin, personIds, notice);
+    // Production: every Tool is on swavely.lol. Development: the Tool's own port.
+    const env = getEnv();
+    const origin = env.TOOLS_ORIGIN ? (toolOrigin(env, notice.cta?.path ?? '/') ?? env.TOOLS_ORIGIN) : 'https://swavely.lol';
+    return notify(env, origin, personIds, notice);
   }
 
   async removedSince(since: number): Promise<{ id: string; removedAt: number }[]> {

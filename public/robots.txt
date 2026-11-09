@@ -6,3 +6,4 @@ Disallow: /login
 Disallow: /logout
 Disallow: /people
 Disallow: /gifts
+Disallow: /move

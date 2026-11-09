@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 import { getEnv } from '../lib/env';
 import { endAllSessions, normaliseEmail } from '../lib/auth';
-import { addPerson, adminEmails, allPeople, removePerson, setManagers } from '../lib/people';
+import { addPerson, adminEmails, allPeople, joinedPeople, removePerson, setManagers } from '../lib/people';
 
 /**
  * The Hub Admin's list of every Person: add, rename, change an address, say who
@@ -52,7 +52,7 @@ if (Astro.request.method === 'POST') {
   }
 }
 
-const people = await allPeople(env.DB);
+const [people, joined] = await Promise.all([allPeople(env.DB), joinedPeople(env.DB)]);
 const admins = adminEmails(env);
 const byId = new Map(people.map((p) => [p.id, p]));
 const emailed = people.filter((p) => p.email);
@@ -88,6 +88,11 @@ const emailed = people.filter((p) => p.email);
           <div class="lt-muted small">
             {p.email ?? (p.managerIds.length ? `Managed by ${p.managerIds.map((m) => byId.get(m)?.name ?? 'someone').join(', ')}` : 'Nobody manages them yet')}
           </div>
+          {joined.has(p.id) && (() => {
+            const j = joined.get(p.id)!;
+            const from = j.addedBy ? byId.get(j.addedBy)?.name : undefined;
+            return <div class="lt-muted small">Joined through {j.via}{from ? `, ${from}'s link` : ''}, {new Date(j.addedAt * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>;
+          })()}
           <details class="edit">
             <summary>Edit</summary>
             <form method="post" class="lt-form">
