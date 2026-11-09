@@ -35,7 +35,9 @@ _Avoid_: Public (everything on the Shelf is public to look at), free
 
 **Invite-only**:
 A **Tool** only **People** can use. Its tile is on the Shelf for everyone, with a lock;
-signing in happens when someone opens it, never before. Never indexed.
+signing in happens when someone opens it, never before. Never indexed. Such a Tool may
+still give its People a link others can use without signing in (MoveLink's Move link);
+whoever opens it is not thereby a Person.
 _Avoid_: Private, members-only, locked
 
 **Person**:
@@ -57,9 +59,15 @@ A Person who sees every Person and every **Tool's** settings, and who alone may 
 out a Tool's own powers (in the gift exchange, starting a Group). Not a way round a
 Tool's secrets: what a Tool keeps from its own users (who drew whom) it keeps from the
 Hub Admin too. Nathan, named in
-configuration so he cannot lock himself out. There is no sign-up: a Person exists
-because a Hub Admin or a Tool's organizer added them.
+configuration so he cannot lock himself out. There is no sign-up page: a Person exists
+because a Hub Admin or a Tool's organizer added them, or because they **Joined**.
 _Avoid_: Owner, superuser, Admin unqualified (each Tool has its own organizers)
+
+**Joined**:
+Said of a **Person** who made themselves one, from a link a **Tool** gave them, not from
+the Hub: a Helper on a MoveLink Move, say. Credited to whoever handed out the link, with
+where they came from (ADR-0005). Nobody can join without such a link.
+_Avoid_: Signed up, registered, self-serve
 
 **Managed**:
 Said of a **Person** with no sign-in of their own, a child or a grandparent, whom one or
