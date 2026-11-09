@@ -44,8 +44,6 @@ export const TOOLS: Tile[] = [
     mark: '📦',
     repo: 'https://github.com/nathanswavely/movelink',
     devPort: 4333,
-    // Until MoveLink's Worker is deployed; the Hub ships first (ADR-0001).
-    soon: true,
   },
   {
     name: 'Jump Back In',
