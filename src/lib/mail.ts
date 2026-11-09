@@ -1,4 +1,4 @@
-import type { Notice } from './contract';
+import type { Notice } from '@swavely-lol/kit/contract';
 import { getPeople } from './people';
 
 /**

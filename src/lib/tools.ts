@@ -19,6 +19,8 @@ export interface Tile {
   repo?: string;
   /** Built but not open to use yet; the tile says so instead of its access. */
   soon?: boolean;
+  /** A Tool that lives here: the port its `npm run dev` uses, so the Hub links to it locally. */
+  devPort?: number;
 }
 
 /** Small apps that do one job each. */
@@ -31,6 +33,19 @@ export const TOOLS: Tile[] = [
     colour: 'cranberry',
     mark: '🎁',
     repo: 'https://github.com/nathanswavely/gift-exchange',
+    devPort: 4332,
+  },
+  {
+    name: 'MoveLink',
+    blurb: 'Rounds up friends, trucks and boxes for moving day.',
+    href: '/move',
+    access: 'invite',
+    colour: 'sage',
+    mark: '📦',
+    repo: 'https://github.com/nathanswavely/movelink',
+    devPort: 4333,
+    // Until MoveLink's Worker is deployed; the Hub ships first (ADR-0001).
+    soon: true,
   },
   {
     name: 'Jump Back In',
@@ -80,8 +95,23 @@ export function toolAt(path: string): Tile | undefined {
   return TOOLS.find((t) => !isExternal(t) && (path === t.href || path.startsWith(t.href + '/')));
 }
 
-/** Where a tile points: its URL, or its path on the Tools' origin in development. */
+/**
+ * Where a path on swavely.lol is served from. In production, here: every Tool shares the
+ * origin. In development each Tool runs on its own port of TOOLS_ORIGIN's host, the
+ * port its tile names, and anything else is the Hub's own.
+ */
+export function toolOrigin(env: HubEnv, path: string): string | null {
+  if (!env.TOOLS_ORIGIN) return null;
+  const tile = toolAt(path);
+  if (!tile?.devPort) return null;
+  const url = new URL(env.TOOLS_ORIGIN);
+  url.port = String(tile.devPort);
+  return url.origin;
+}
+
+/** Where a tile points: its URL, or its path, on its Tool's port in development. */
 export function toolHref(env: HubEnv, href: string): string {
   if (/^https?:\/\//.test(href)) return href;
-  return env.TOOLS_ORIGIN ? new URL(href, env.TOOLS_ORIGIN).toString() : href;
+  const origin = toolOrigin(env, href);
+  return origin ? new URL(href, origin).toString() : href;
 }

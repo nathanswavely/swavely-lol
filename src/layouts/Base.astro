@@ -1,13 +1,13 @@
 ---
 import '../styles/global.css';
+import Shell from '@swavely-lol/kit/Shell.astro';
 
 /**
- * The Hub's shell. No bar: a settings cog sits in the top right on every page, and its
- * menu holds who is signed in, the theme, People for a Hub Admin, and sign in or out.
- * Pages other than the Shelf get a small way home in the top left. `bare` is the
- * sign-in pages. `indexed` is the Shelf alone (ADR-0002); every other page asks search
- * engines to stay out. Textile finish, lol skin; light or dark from the device, or the
- * choice saved in the menu (Liquid Textile's `lt-theme` key).
+ * The Hub's pages in the shell every page on swavely.lol shares (the kit's, ADR-0004):
+ * the settings cog with who is signed in, the theme, People for a Hub Admin, and sign
+ * in or out; a way home on every page but the Shelf. `bare` is the sign-in pages.
+ * `indexed` is the Shelf alone (ADR-0002); every other page asks search engines to stay
+ * out.
  */
 interface Props {
   title: string;
@@ -19,91 +19,9 @@ interface Props {
   home?: boolean;
   description?: string;
 }
-const { title, bare = false, indexed = false, wide = false, home = false, description } = Astro.props;
-const viewer = Astro.locals.viewer;
-const fullTitle = title === 'swavely.lol' ? title : `${title} · swavely.lol`;
+const props = Astro.props;
 ---
 
-<!doctype html>
-<html lang="en" data-theme="light" data-finish="textile">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="robots" content={indexed ? 'index, follow' : 'noindex, nofollow'} />
-    <meta name="color-scheme" content="light dark" />
-    {description && <meta name="description" content={description} />}
-    {indexed && (
-      <>
-        <link rel="canonical" href="https://swavely.lol/" />
-        <meta property="og:title" content={fullTitle} />
-        {description && <meta property="og:description" content={description} />}
-        <meta property="og:url" content="https://swavely.lol/" />
-        <meta property="og:type" content="website" />
-      </>
-    )}
-    <link rel="icon" href="/favicon/favicon.ico" sizes="any" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
-    <title>{fullTitle}</title>
-    <script is:inline>
-      (function () {
-        var t = null;
-        try { t = localStorage.getItem('lt-theme'); } catch (e) {}
-        if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', t);
-      })();
-    </script>
-  </head>
-  <body>
-    <div class="shell">
-      {!home && !bare && (
-        <a class="home-link" href="/"><img src="/favicon/android-chrome-192x192.png" alt="" width="22" height="22" />swavely.lol</a>
-      )}
-      <div class="settings">
-        <button type="button" class="lt-btn lt-btn-ghost lt-btn-icon" id="settings-btn" aria-label="Settings">
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
-        </button>
-        <div class="lt-popover lt-menu" id="settings-menu">
-          {viewer && <div class="lt-menu-label">Signed in as {viewer.name}</div>}
-          <button type="button" class="lt-menu-item" data-action="theme">Dark mode</button>
-          {viewer?.isHubAdmin && <a class="lt-menu-item" href="/people">People</a>}
-          {!home && <a class="lt-menu-item" href="/">Back to the shelf</a>}
-          {(viewer || !bare) && <hr class="lt-menu-divider" />}
-          {viewer
-            ? <button type="button" class="lt-menu-item" data-action="signout">Sign out</button>
-            : !bare && <a class="lt-menu-item" href="/login">Sign in</a>}
-        </div>
-        <form method="post" action="/logout" id="signout-form" hidden></form>
-      </div>
-      <main class={wide ? 'wide' : undefined}>
-        <slot />
-      </main>
-    </div>
-    <script>
-      import { menu } from '../styles/liquid-textile/behaviors.js';
-
-      const root = document.documentElement;
-      const themeItem = document.querySelector<HTMLButtonElement>('[data-action="theme"]')!;
-      const label = () => { themeItem.textContent = root.getAttribute('data-theme') === 'dark' ? 'Light mode' : 'Dark mode'; };
-      label();
-
-      menu(document.getElementById('settings-btn'), document.getElementById('settings-menu'), {
-        align: 'end',
-        onSelect: (picked?: unknown) => {
-          const item = picked as HTMLElement;
-          if (item.dataset.action === 'theme') {
-            const t = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            root.setAttribute('data-theme', t);
-            try { localStorage.setItem('lt-theme', t); } catch {}
-            label();
-          } else if (item.dataset.action === 'signout') {
-            (document.getElementById('signout-form') as HTMLFormElement).submit();
-          } else if (item instanceof HTMLAnchorElement) {
-            location.href = item.href;
-          }
-        },
-      });
-    </script>
-  </body>
-</html>
+<Shell {...props} canonical={props.indexed ? 'https://swavely.lol/' : undefined}>
+  <slot />
+</Shell>

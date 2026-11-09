@@ -1,4 +1,4 @@
-import type { Person, Viewer } from './contract';
+import type { Person, Viewer } from '@swavely-lol/kit/contract';
 import { sha256Hex } from './auth';
 
 /**
@@ -53,6 +53,18 @@ export async function allPeople(db: D1Database): Promise<Person[]> {
   return results.map(toPerson);
 }
 
+/**
+ * Everyone who Joined (ADR-0005): where they came from, and whose link it was. For the
+ * People page, so a Hub Admin can find a batch that came in through a link posted
+ * somewhere it should not have been.
+ */
+export async function joinedPeople(db: D1Database): Promise<Map<string, { via: string; addedBy: string | null; addedAt: number }>> {
+  const { results } = await db
+    .prepare('SELECT id, joined_via, added_by, added_at FROM people WHERE joined_via IS NOT NULL')
+    .all<{ id: string; joined_via: string; added_by: string | null; added_at: number }>();
+  return new Map(results.map((r) => [r.id, { via: r.joined_via, addedBy: r.added_by, addedAt: r.added_at }]));
+}
+
 export async function personByEmail(db: D1Database, email: string): Promise<Row | null> {
   return db.prepare('SELECT id, name, email FROM people WHERE email = ?1').bind(email).first<Row>();
 }
@@ -97,7 +109,11 @@ export async function personForSignIn(env: HubEnv, email: string): Promise<Row |
   return { id, name, email };
 }
 
-export async function addPerson(db: D1Database, input: { name: string; email?: string | null; addedBy: string | null }): Promise<{ person: Person; existed: boolean }> {
+/**
+ * Add a Person, or return the one who has this email, unchanged. `via` marks someone who
+ * Joined through a Tool's link (ADR-0005) and is kept only for a new Person.
+ */
+export async function addPerson(db: D1Database, input: { name: string; email?: string | null; addedBy: string | null; via?: string }): Promise<{ person: Person; existed: boolean }> {
   const name = input.name.trim().slice(0, 80);
   const email = input.email?.trim().toLowerCase() || null;
   if (email) {
@@ -105,7 +121,11 @@ export async function addPerson(db: D1Database, input: { name: string; email?: s
     if (found) return { person: (await withManagers(db, [found]))[0], existed: true };
   }
   const id = newId('p_');
-  await db.prepare('INSERT INTO people (id, name, email, added_by, added_at) VALUES (?1, ?2, ?3, ?4, ?5)').bind(id, name || email || 'Someone', email, input.addedBy, now()).run();
+  const via = input.via?.trim().slice(0, 120) || null;
+  await db
+    .prepare('INSERT INTO people (id, name, email, added_by, added_at, joined_via) VALUES (?1, ?2, ?3, ?4, ?5, ?6)')
+    .bind(id, name || email || 'Someone', email, input.addedBy, now(), via)
+    .run();
   return { person: { id, name: name || email || 'Someone', email, managerIds: [] }, existed: false };
 }
 

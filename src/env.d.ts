@@ -11,9 +11,9 @@ interface HubEnv {
   REPLY_TO?: string;
   /** Development only: '1' lets `astro dev` send real mail. */
   DEV_SEND_MAIL?: string;
-  /** Development only: where Tools run (http://localhost:4332). Production: same origin. */
+  /** Development only: the host Tools run on (http://localhost), each on its tile's devPort. Production: same origin. */
   TOOLS_ORIGIN?: string;
-  /** Development only: milliseconds to add to every database call (dev-latency.ts). */
+  /** Development only: milliseconds to add to every database call (the kit's dev-latency). */
   DEV_DB_LATENCY_MS?: string;
   /** People, managers, codes and sessions. */
   DB: D1Database;
@@ -22,6 +22,6 @@ interface HubEnv {
 declare namespace App {
   interface Locals {
     /** The signed-in Person, if any; set by src/middleware.ts. Only /people requires one. */
-    viewer?: import('./lib/contract').Viewer & { sessionIdHash: string };
+    viewer?: import('@swavely-lol/kit/contract').Viewer & { sessionIdHash: string };
   }
 }

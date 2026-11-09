@@ -3,6 +3,7 @@ import { getEnv } from './lib/env';
 import { viewerForSession } from './lib/people';
 import { SESSION_COOKIE, readCookie } from './lib/auth';
 import { toolAt, toolHref } from './lib/tools';
+import { refuseCrossOrigin, setHeaders } from '@swavely-lol/kit/guard';
 
 /**
  * Who is this, and do they need to be anyone (ADR-0002). The Shelf and sign-in are open
@@ -27,12 +28,8 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
     return Response.redirect(`https://swavely.lol${pathname}${ctx.url.search}`, 301);
   }
 
-  if (ctx.request.method !== 'GET' && ctx.request.method !== 'HEAD') {
-    const site = ctx.request.headers.get('Sec-Fetch-Site');
-    const origin = ctx.request.headers.get('Origin');
-    const sameOrigin = site === 'same-origin' || (origin !== null && origin === ctx.url.origin);
-    if (!sameOrigin) return new Response('Cross-origin request refused.', { status: 403 });
-  }
+  const refused = refuseCrossOrigin(ctx.request, ctx.url);
+  if (refused) return refused;
 
   const id = readCookie(ctx.request, SESSION_COOKIE);
   const who = id ? await viewerForSession(env, id) : null;
@@ -49,10 +46,5 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   }
 
   const res = await next();
-  if (!INDEXED.includes(pathname) && !pathname.startsWith('/_astro/')) res.headers.set('X-Robots-Tag', 'noindex, nofollow');
-  if (!pathname.startsWith('/_astro/')) res.headers.set('Cache-Control', 'private, no-store');
-  res.headers.set('Referrer-Policy', 'same-origin');
-  res.headers.set('X-Content-Type-Options', 'nosniff');
-  res.headers.set('X-Frame-Options', 'DENY');
-  return res;
+  return setHeaders(res, pathname, { indexed: INDEXED.includes(pathname) });
 });

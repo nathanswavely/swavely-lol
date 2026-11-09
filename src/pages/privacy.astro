@@ -13,11 +13,16 @@ import Base from '../layouts/Base.astro';
     <p>swavely.lol is a personal site, and most of it does not know who you are. If you just look at the tools and projects, nothing about you is stored here, and there are no analytics, no ads, and no tracking. The light or dark choice is saved in your own browser and never leaves it.</p>
 
     <h2>What changes when you sign in</h2>
-    <p>Some tools, like the gift exchange, are invite-only. Somebody (me, or whoever runs your group) added you with your name and usually your email address, so you did not sign up for this yourself, which is part of why this page exists. If you were added without an email, the people who look after you sign in instead.</p>
-    <p>When you sign in, you get an email with a six-digit code. The code is stored scrambled (hashed) for ten minutes and then thrown away. Signing in sets one cookie, which keeps you signed in for thirty days, and that is the only cookie on the site.</p>
+    <p>Some tools, like the gift exchange, are invite-only. Usually somebody (me, or whoever runs your group) added you with your name and usually your email address, so you did not sign up for this yourself, which is part of why this page exists. If you were added without an email, the people who look after you sign in instead.</p>
+    <p>The other way in is a link someone sent you, like a MoveLink move. From there you can make yourself an account with your name and email. I can see which link you came through and whose it was, and that's all it's for.</p>
+    <p>When you sign in, you get an email with a six-digit code. The code is stored scrambled (hashed) for ten minutes and then thrown away. Signing in sets one cookie, which keeps you signed in for thirty days.</p>
 
     <h2>What the gift exchange keeps</h2>
     <p>Your groups, who takes part each year, the rules your organizer sets (who never draws whom), the names that get drawn, and your wish list, along with who said they are getting what. Nobody can see who drew whom in the app, including me. The database itself still has the pairings, and I can read it by hand if something breaks.</p>
+
+    <h2>What MoveLink keeps</h2>
+    <p>A move's addresses and notes, its shifts and what it needs, and everyone who signed up: a name, what you said you'd do or bring, and a phone number if you gave one. Anyone with the move's link sees all of it except the phone numbers, which only the people running the move see. If you sign up without an account, a cookie in your browser remembers it was you, so you can change your answer later. That's the site's second cookie, and it only works on MoveLink.</p>
+    <p>Thirty days after a move's last shift, MoveLink deletes the whole thing, addresses and everyone on it included.</p>
 
     <h2>Who else touches it</h2>
     <p>Cloudflare hosts the site and the database, and keeps short-lived request logs that can include your IP address. Resend sends the emails, so it sees your address and what the email says. Nobody else gets anything, and nothing is sold.</p>
@@ -26,6 +31,6 @@ import Base from '../layouts/Base.astro';
     <h2>Getting yourself removed</h2>
     <p>Email me at <a href="mailto:nathan@swavelycreative.com">nathan@swavelycreative.com</a> and I will take you off swavely.lol along with anything you added, like your wish list.</p>
 
-    <p class="lt-muted small">Last updated October 19, 2026.</p>
+    <p class="lt-muted small">Last updated November 9, 2026.</p>
   </article>
 </Base>

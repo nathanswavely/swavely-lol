@@ -2,7 +2,10 @@
 
 A shelf of small tools: some open to anyone, some just for family and friends, some
 living on their own domains. One look, and one sign-in for the ones that need it. Each tool is its own repo and its own Cloudflare Worker on
-a path under `swavely.lol`; the first is the [gift exchange](https://github.com/nathanswavely/gift-exchange).
+a path under `swavely.lol`: the [gift exchange](https://github.com/nathanswavely/gift-exchange)
+and [MoveLink](https://github.com/nathanswavely/movelink). What they all share comes from
+[swavely-lol-kit](https://github.com/nathanswavely/swavely-lol-kit)
+([ADR-0004](docs/adr/0004-the-hub-and-its-tools-share-one-kit.md)).
 
 Start with [CONTEXT.md](CONTEXT.md) for the words, then
 [ADR-0001](docs/adr/0001-tools-are-separate-workers-that-ask-the-hub.md) for how the
@@ -21,15 +24,18 @@ pieces fit.
 - **Answers the Tools.** `HubApi` (src/worker.ts) is an RPC entrypoint a Tool reaches over
   a Cloudflare service binding: who holds this session, who are these People, add
   someone, email someone, who has been removed. It is not reachable from the internet.
-  The promise is [src/lib/contract.ts](src/lib/contract.ts).
+  The promise is the kit's `src/contract.ts`.
 - **Removes people everywhere.** Removing a Person on the People page leaves only their
   bare id on a list; each Tool reads it on a schedule and deletes what they added
   ([ADR-0003](docs/adr/0003-removing-a-person-removes-them-from-every-tool.md)).
+- **Lets people join through a Tool's link.** There is no sign-up page, but someone a
+  Tool's link reached (a MoveLink Helper) may make themselves a Person, credited to whose
+  link it was ([ADR-0005](docs/adr/0005-a-person-may-join-through-a-tool-s-link.md)).
 
 ## Stack
 
 Astro (server output) on Cloudflare Workers, D1, Resend for mail, and
-[Liquid Textile](src/styles/liquid-textile/VENDORED.md) with its textile finish and the
+Liquid Textile (vendored in the kit) with its textile finish and the
 `lol` skin, light and dark.
 
 ## Running it
@@ -42,7 +48,8 @@ npm run dev                      # http://localhost:4331
 ```
 
 The seed is a made-up family; sign in as `homer@example.com` and the code is shown on
-the page. Run a Tool beside it (its own `npm run dev`, on 4332) and the binding finds
+the page. Run a Tool beside it (its own `npm run dev`, on the port its tile names in
+`src/lib/tools.ts`: gifts 4332, MoveLink 4333) and the binding finds
 the Hub through Wrangler's dev registry; cookies ignore the port, so one sign-in covers
 both. Signing out from a Tool's page only works in production, where both share an
 origin.
@@ -58,7 +65,9 @@ origin.
 ## Adding a Tool
 
 A new repo with its own Worker and route (`swavely.lol/<path>*`), a `HUB` service
-binding with `entrypoint: "HubApi"`, a copy of `src/lib/contract.ts`, and a line in
-[src/lib/tools.ts](src/lib/tools.ts). A Tool that stores anything about a Person also
-needs a cron trigger that asks `removedSince` and deletes it (ADR-0003); the gift
-exchange's `src/lib/purge.ts` is the pattern.
+binding with `entrypoint: "HubApi"`, `@swavely-lol/kit` at its current tag (the
+contract, `toolGuard` for the middleware, `Shell.astro`, the env helpers and the
+styles), and a line in [src/lib/tools.ts](src/lib/tools.ts) with its `devPort`. A Tool
+that stores anything about a Person also needs a cron trigger that hands its own
+`purgePerson` to the kit's `runRemovals` (ADR-0003), and the kit's
+`migrations/hub_cursor.sql` in its migrations.

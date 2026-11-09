@@ -1,16 +1,8 @@
-import { env as workerEnv } from 'cloudflare:workers';
-import { withLatency } from './dev-latency';
+import { getEnv as kitEnv } from '@swavely-lol/kit/env';
 
 /**
- * The Worker env: wrangler.jsonc vars, secrets, and .dev.vars locally. `astro dev`
- * runs on workerd too, so the same import serves both. In development DEV_DB_LATENCY_MS
- * slows the database to production's round trip (dev-latency.ts).
+ * The Worker env: wrangler.jsonc vars, secrets, and .dev.vars locally, from the kit
+ * (ADR-0004), typed as the Hub's. In development DEV_DB_LATENCY_MS slows the database
+ * to production's round trip.
  */
-let cached: HubEnv | undefined;
-export function getEnv(): HubEnv {
-  if (cached) return cached;
-  const env = workerEnv as unknown as HubEnv;
-  const ms = import.meta.env.DEV ? Number(env.DEV_DB_LATENCY_MS ?? 0) : 0;
-  cached = ms ? { ...env, DB: withLatency(env.DB, ms) } : env;
-  return cached;
-}
+export const getEnv = (): HubEnv => kitEnv<HubEnv>();
